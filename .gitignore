@@ -17,3 +17,7 @@ doc/latex
 trunk
 .vagrant/
 .idea
+containernet.egg-info/
+prometheus-*.tar.gz
+data/
+prometheus/
