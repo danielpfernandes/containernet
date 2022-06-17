@@ -1,15 +1,13 @@
-from cartopy.io.img_tiles import OSM
+import webbrowser
 from matplotlib import axes
 from matplotlib.transforms import Transform
 
-import cartopy.crs as ccrs
-import cartopy.feature as cf
 import matplotlib.pyplot as plt
-
+import folium
 
 ax = axes.Axes
 
-def plot_destination(coordinates: list[float], text: str, shape = 'r.', is_fanet = False):
+def plot_destination(coordinates: list, text: str, shape = 'r.', is_fanet = False):
     if is_fanet:
         plt.plot(coordinates[0], coordinates[1], shape, zorder=5, transform=ccrs.PlateCarree(), markersize=2)
     else:
@@ -17,21 +15,14 @@ def plot_destination(coordinates: list[float], text: str, shape = 'r.', is_fanet
     plt.text(coordinates[0] + 0.001, coordinates[1], text, fontsize='medium', transform=ccrs.PlateCarree())
 
 def main():
-    cf.BORDERS
-    cf.COASTLINE
     
-    imagery = OSM()
-    origin = [10, 50]
-    scenario_one = [10.01,50.01]
-    
-    ax = plt.axes(projection=imagery.crs)
-    ax.set_extent((origin[0] - 0.001, origin[0] + 0.025,
-                   origin[1] - 0.001, origin[1] + 0.025))
-    ax.add_image(imagery, 14)
-    plot_destination(origin, 'FANET', shape='b.', is_fanet=True)
-    plot_destination(scenario_one, 'Scenario 1')
-    
-    plt.show()
+    origin = [50, 10]
+    scenario_one = [50.01,10.01]
+    map = folium.Map(origin, tiles='OpenStreetMap', zoom_start=15)
+    folium.Marker(location=[origin[0],origin[1]],popup='Origin').add_to(map)
+    folium.Marker(location=[scenario_one[0],scenario_one[1]],popup='Scenario 1').add_to(map)
+    map.save("map.html")
+    webbrowser.open("map.html")
 
 if __name__ == '__main__':
     main()

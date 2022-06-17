@@ -21,3 +21,4 @@ containernet.egg-info/
 prometheus-*.tar.gz
 data/
 prometheus/
+map.html
