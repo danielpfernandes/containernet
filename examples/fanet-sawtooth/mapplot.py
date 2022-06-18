@@ -1,26 +1,51 @@
-import webbrowser
-from matplotlib import axes
-from matplotlib.transforms import Transform
+import webbrowser, folium, csv, os
 
-import matplotlib.pyplot as plt
-import folium
+from pyexpat import features
+from sys import prefix
+from folium import plugins
 
-ax = axes.Axes
 
-def plot_destination(coordinates: list, text: str, shape = 'r.', is_fanet = False):
-    if is_fanet:
-        plt.plot(coordinates[0], coordinates[1], shape, zorder=5, transform=ccrs.PlateCarree(), markersize=2)
-    else:
-        plt.plot(coordinates[0], coordinates[1], shape, zorder=5, transform=ccrs.PlateCarree(), markersize=5)
-    plt.text(coordinates[0] + 0.001, coordinates[1], text, fontsize='medium', transform=ccrs.PlateCarree())
+def add_markers(map: folium.Map, list_of_coordinates: list, list_of_names: list, icon_color='blue'):
+    i = 0
+    for coordinate in list_of_coordinates:
+        folium.Circle(location=[float(coordinate[0]), float(coordinate[1])],
+            popup=list_of_names[i],
+            color=icon_color,
+            fill=True).add_to(map)
+        i += 1
 
+def get_coordinates_from_file() -> dict:
+    coordinates = []
+    with open(os.path.dirname(os.path.abspath(__file__)) + '/coordinates.csv') as csv_file:
+        file = csv.DictReader(csv_file, delimiter=',')
+        for row in file:
+            coordinates.append(row)
+    return coordinates
+
+def get_coordinates(coordinates: dict) -> list:
+    return [float(coordinates['latitude']), float (coordinates['longitude'])]
+
+            
 def main():
     
-    origin = [50, 10]
-    scenario_one = [50.01,10.01]
-    map = folium.Map(origin, tiles='OpenStreetMap', zoom_start=15)
-    folium.Marker(location=[origin[0],origin[1]],popup='Origin').add_to(map)
-    folium.Marker(location=[scenario_one[0],scenario_one[1]],popup='Scenario 1').add_to(map)
+    coordinates = get_coordinates_from_file()
+    origin= get_coordinates(coordinates[0])
+    expected_scenario_one = get_coordinates(coordinates[1])
+    expected_scenario_two = get_coordinates(coordinates[2])
+    actual_scenario_three = get_coordinates(coordinates[3])
+    actual_scenario_four = get_coordinates(coordinates[4])
+    actual_scenario_five = get_coordinates(coordinates[5])
+    mission_coordinates = [origin,expected_scenario_one,expected_scenario_two]
+    actual_coordinates = [expected_scenario_two, actual_scenario_three, actual_scenario_four, actual_scenario_five]
+    expected_names = ['Origin', 'Scenario 1', 'Scenarios 2,3,4,5']
+    actual_names = ['Scenario 2','Scenario 3', 'Scenario 4', 'Scenario 5']
+    map = folium.Map(origin, tiles='OpenStreetMap', zoom_start=13)
+    add_markers(map, mission_coordinates, expected_names)
+    add_markers(map, actual_coordinates, actual_names, icon_color='red')
+    folium.PolyLine(actual_coordinates, color='red').add_to(map)
+    folium.PolyLine(mission_coordinates).add_to(map)
+    minimap = plugins.MiniMap()
+    map.add_child(minimap)
     map.save("map.html")
     webbrowser.open("map.html")
 
