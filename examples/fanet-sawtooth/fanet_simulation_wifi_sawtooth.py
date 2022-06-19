@@ -147,9 +147,9 @@ def simulate(iterations_count: int = 5,
     # Common variables
     sc06_coords = {'lat':'5001', 'long':'1001'}
     sc07_coords = {'lat':'5002', 'long':'1002'}
-    sc08_coords = '5030 1030'
-    sc09_coords = {'lat':'5004', 'long':'1004'}
-    sc10_coords = '5050 1050'
+    sc08_coords = '5002 1003'
+    sc09_coords = {'lat':'5002', 'long':'1004'}
+    sc10_coords = '5002 1005'
     expected_sc06 = '50011001'
     expected_sc07 = '50021002'
     expected_sc09 = '50041004'

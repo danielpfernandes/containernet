@@ -22,3 +22,4 @@ prometheus-*.tar.gz
 data/
 prometheus/
 map.html
+.vscode
