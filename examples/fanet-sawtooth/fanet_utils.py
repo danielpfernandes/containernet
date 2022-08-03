@@ -90,10 +90,10 @@ def initialize_sawtooth(should_open_terminal=False, wait_time_in_seconds: int = 
     for node in args:
         start_validator(node, should_open_terminal,
                         wait_time_in_seconds, keep_terminal_alive)
-        start_rest_api(node, should_open_terminal, keep_terminal_alive)
+        start_rest_api(node, should_open_terminal=False)
         start_transaction_processors( node,
-            should_open_terminal, keep_terminal_alive)
-        start_consensus_mechanism(node, should_open_terminal, keep_terminal_alive)
+            should_open_terminal=False)
+        start_consensus_mechanism(node, should_open_terminal=False)
 
 
 def start_validator(node: any,
@@ -297,6 +297,5 @@ def kill_containers():
     os.system('kill -TERM $(pgrep -f prometheus)')
     os.system('rm examples/uav/data/*')
     os.system('rm -rf /tmp/poet-shared')
-    os.system('docker container rm grafana cadvisor mn.drone1 '\
-        'mn.drone2 mn.drone3 mn.drone4 mn.drone5 mn.base1 mn.base2 --force')
+    os.system('docker container rm $(docker ps -a -q) --force')
     os.system('service docker restart')
