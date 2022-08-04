@@ -27,8 +27,7 @@ def simulate(iterations_count: int = 5,
     should_open_xterm = not skip_cli
     ports = [4004, 8008, 8800, 5050, 3030, 5000]
     docker_image = "containernet_example:sawtoothAll"
-    
-    os.system('cd examples/example-containers && ./build.sh')
+    drones = []
     
     info( time_stamp() + '*** Starting monitors\n')
     grafana = subprocess.Popen(
@@ -51,7 +50,6 @@ def simulate(iterations_count: int = 5,
 
     info(time_stamp() + '*** Adding docker drones\n')
 
-    drones = []
     for i in range(10):
         name = 'drone' + str(i)
         my_ip = '10.0.0.1' + str(i)

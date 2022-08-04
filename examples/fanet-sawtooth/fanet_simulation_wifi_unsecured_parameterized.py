@@ -29,8 +29,7 @@ def simulate(iterations_count: int = 5,
     wait_time_in_seconds = int(wait_time_in_seconds)
     ports = [4004, 8008, 8800, 5050, 3030, 5000]
     docker_image = "containernet_example:sawtoothAll"
-
-    os.system('cd examples/example-containers && ./build.sh')
+    drones = []
     
     info( time_stamp() + '*** Starting monitors\n')
     grafana = subprocess.Popen(
@@ -52,8 +51,6 @@ def simulate(iterations_count: int = 5,
                          volumes=["/tmp/base1/data:/data"])
 
     info(time_stamp() + '*** Adding docker drones\n')
-
-    wait_time_in_seconds(5)
 
     for i in range(10):
         name = 'drone' + str(i)

@@ -299,3 +299,4 @@ def kill_containers():
     os.system('rm -rf /tmp/poet-shared')
     os.system('docker container rm $(docker ps -a -q) --force')
     os.system('service docker restart')
+    os.system('cd examples/example-containers && ./build.sh')
