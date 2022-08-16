@@ -15,11 +15,12 @@ from mn_wifi.link import adhoc
 from containernet.net import Containernet
 from containernet.node import DockerSta
 from containernet.term import makeTerm
-from fanet_utils import kill_containers, save_logs_to_results, set_rest_location, setup_network, time_stamp
+from fanet_utils import create_json_drones, kill_containers, save_logs_to_results, set_rest_location, setup_network, time_stamp
 
 
 def simulate(iterations_count: int = 5,
              wait_time_in_seconds: int = 5,
+             number_of_drones = 5,
              skip_cli = False):
 
     START_LOCATION_SERVER = 'touch /data/locations.csv && python /rest/locationRestServer.py &'
@@ -30,6 +31,8 @@ def simulate(iterations_count: int = 5,
     ports = [4004, 8008, 8800, 5050, 3030, 5000]
     docker_image = "containernet_example:sawtoothAll"
     drones = []
+
+    create_json_drones(number_of_drones)
     
     info( time_stamp() + '*** Starting monitors\n')
     grafana = subprocess.Popen(
@@ -52,13 +55,15 @@ def simulate(iterations_count: int = 5,
 
     info(time_stamp() + '*** Adding docker drones\n')
 
-    for i in range(10):
+    for i in range(number_of_drones):
         name = 'drone' + str(i)
         my_ip = '10.0.0.1' + str(i)
+        
         if i < 10:
             my_mac = '00:00:00:00:00:0' + str(i)
         else:
             my_mac = '00:00:00:00:00:' + str(i)
+        
         drone = net.addStation(name,
                         ip=my_ip,
                         mac=my_mac,
@@ -73,7 +78,7 @@ def simulate(iterations_count: int = 5,
                         cpu_quota=10000,
                         position='30,60,10')
         drones.append(drone)
-    
+
     setup_network(net, bs1, *drones)
 
     info(time_stamp() + '*** Starting REST server on drones\n')
@@ -89,6 +94,7 @@ def simulate(iterations_count: int = 5,
         for drone in drones:
             makeTerm(drone, cmd=TAIL_LOCATIONS_LOG)
 
+    makeTerm(drones[0], cmd="bash")
     time.sleep(5)
 
     info(time_stamp() + "*** Configure the node position\n")
@@ -99,30 +105,30 @@ def simulate(iterations_count: int = 5,
     info(time_stamp() + "*** Scenario 1: BS1 sends initial coordinates to Drone 3\n")
     info(time_stamp() + "*** Scenario 1 Expected: Coordinates set to 50.01 10.01\n")
     set_rest_location(bs1, iterations=iterations_count, interval=wait_time_in_seconds,
-                 target='10.0.0.11', coordinates=' 50.01 10.01')
+                 target=drones[0].params['ip'], coordinates=' 50.01 10.01')
     ################################### SCENARIO 02 ###################################
     info(time_stamp() + "*** Scenario 2: BS1 changes the destination coordinates through Drone 2\n")
     info(time_stamp() + "*** Scenario 2 Expected: Coordinates set to 50.02 10.02\n")
     set_rest_location(bs1, iterations=iterations_count, interval=wait_time_in_seconds,
-                 target='10.0.0.10', coordinates='50.02 10.02')
+                 target=drones[1].params['ip'], coordinates='50.02 10.02')
     ################################### SCENARIO 03 ###################################
     info(time_stamp() + "*** Scenario 3: Drone 5 is compromised and tries to change the destination coordinates\n")
     info(time_stamp() + "*** Scenario 3 Expected: Coordinates keep to 50.02 10.02 (Exploited if set to 50.02 10.03)\n")
-    set_rest_location(d5, iterations=iterations_count, interval=wait_time_in_seconds,
-                 target='10.0.0.19', coordinates='50.02 10.03')
+    set_rest_location(drones[4], iterations=iterations_count, interval=wait_time_in_seconds,
+                 target=drones[1].params['ip'], coordinates='50.02 10.03')
     ################################### SCENARIO 04 ###################################
     info(time_stamp() + "*** Scenario 4: Connection with the base station is lost and \
 the compromised drone tries to change the destination coordinates\n")
     info(time_stamp() + "*** Scenario 4 Expected: Coordinates keep to 50.02 10.02 (Exploited if set to 50.02 10.04)\n")
     bs1.cmd("pkill -9 -f /rest/locationRestServer.py &")
-    set_rest_location(d4, iterations=iterations_count, interval=wait_time_in_seconds,
-                 target='10.0.0.10', coordinates='50.02 10.04')
+    set_rest_location(drones[4], iterations=iterations_count, interval=wait_time_in_seconds,
+                 target=drones[1], coordinates='50.02 10.04')
     ################################### SCENARIO 05 ###################################
     info(time_stamp() + "*** Scenario 5: A compromised base station joins the network tries to change the destination coordinates\n")
     info(time_stamp() + "*** Scenario 5 Expected: Coordinates keep to 50.02 10.02 (Exploited if set to 50.02 10.05)\n")
     bs2 = net.addStation('base2',
                          ip='10.0.0.101',
-                         mac='00:00:00:00:00:00',
+                         mac='00:00:10:01:00:00',
                          cls=DockerSta,
                          dimage="containernet_example:sawtoothAll",
                          ports=[4004, 8008, 8800, 5050, 3030, 5000],
@@ -132,7 +138,7 @@ the compromised drone tries to change the destination coordinates\n")
                 mode='g', channel=5, ht_cap='HT40+')
     makeTerm(bs2, cmd="bash")
     set_rest_location(bs2, iterations=iterations_count, interval=wait_time_in_seconds,
-                 target='10.0.0.11', coordinates='50.02 10.05')
+                 target=drones[2], coordinates='50.02 10.05')
 
     save_logs_to_results()
 
@@ -158,10 +164,11 @@ if __name__ == '__main__':
     kill_process()
     kill_containers()
 
-    if len(sys.argv) == 3 and sys.argv[0] is not 'sudo':
+    if len(sys.argv) == 4 and sys.argv[0] is not 'sudo':
         skip_cli = True
         print('iterations: ' + sys.argv[1])
         print('wait time: ' + sys.argv[2])
-        simulate(sys.argv[1], sys.argv[2], skip_cli)
+        print('number of drones: ' + sys.argv[3])
+        simulate(sys.argv[1], sys.argv[2], sys.argv[3], skip_cli)
     else:
         simulate()

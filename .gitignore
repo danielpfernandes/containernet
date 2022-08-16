@@ -23,3 +23,4 @@ data/
 prometheus/
 map.html
 .vscode
+examples/example-containers/rest/tmp_drones.json

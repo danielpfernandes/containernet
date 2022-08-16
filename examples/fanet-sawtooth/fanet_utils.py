@@ -1,10 +1,12 @@
 import os
 import sys
 import time
+import json
 
 from datetime import datetime
 from mininet.log import info
 from mn_wifi.link import adhoc
+from pandas import array
 
 from containernet.net import Containernet
 from containernet.term import makeTerm
@@ -23,6 +25,19 @@ def add_link(net: Containernet, node: any):
     net.addLink(node, cls=adhoc, intf=str(node.name) + '-wlan0',
                 ssid='adhocNet', proto='batman_adv',
                 mode='g', channel=5, ht_cap='HT40+')
+
+
+def create_json_drones(number_of_drones):
+    my_drones =  []
+    for i in range(number_of_drones):
+        name = 'drone' + str(i)
+        my_ip = '10.0.0.1' + str(i)
+        my_drones.append({'id': name, 'address': my_ip})
+
+    with open('examples/example-containers/rest/tmp_drones.json', 'w') as file:
+        json.dump(my_drones, file)
+    
+    os.system('cd examples/example-containers && ./build.sh')
 
 
 def setup_network(net: Containernet, *argv):
@@ -66,7 +81,7 @@ def setup_network(net: Containernet, *argv):
 
 
 def set_rest_location(
-        station: any, iterations=10, interval=10, target='10.0.0.249', coordinates='0 0'):
+        station: any, iterations=10, interval=10, target='10.0.0.1', coordinates='0 0'):
     """Set the drone location
 
     Args:

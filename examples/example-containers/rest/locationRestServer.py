@@ -7,6 +7,7 @@ import socket
 import pandas as pd
 
 from flask import Flask, json, request
+from pathlib import Path
 from datetime import datetime
 
 LOCATION_REST_SERVER_LOG_PATH = "/data/locationRestServer.log"
@@ -14,7 +15,8 @@ LOCATION_DATA_CSV_PATH = '/data/locations.csv'
 LOCATION_DATA_JSON_PATH = '/data/locations.json'
 CURRENT_DESTINATION_FILE_PATH = '/data/currentDestination.json'
 VALIDATION_FILE_PATH = '/tmp/currentDestination.json'
-DRONES_IP_ADDRESSES_JSON_PATH = '/rest/drones.json'
+DRONES_STATIC_IP_ADDRESSES_JSON_PATH = '/data/drones.json'
+DRONES_PARAMETRIZED_IP_ADDRESSES_JSON_PATH = '/tmp/drones.json'
 BASE_STATION_IP = '10.0.0.1'
 LOCALHOST_IP = '0.0.0.0'
 LATITUDE_KEY = 'latitude'
@@ -62,7 +64,10 @@ def propagate_message(new_coordinates):
     """
 
     # The file that contains the IP address from the hosts in the network
-    fanet_hosts = open(DRONES_IP_ADDRESSES_JSON_PATH)
+    if Path(DRONES_PARAMETRIZED_IP_ADDRESSES_JSON_PATH).is_file():
+        fanet_hosts = open(DRONES_PARAMETRIZED_IP_ADDRESSES_JSON_PATH)
+    else:
+        fanet_hosts = open(DRONES_STATIC_IP_ADDRESSES_JSON_PATH)
     json_array = json.load(fanet_hosts)
     drones_ip_list = []
 
