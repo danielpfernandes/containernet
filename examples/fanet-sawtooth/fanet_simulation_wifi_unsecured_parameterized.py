@@ -105,7 +105,7 @@ def simulate(number_of_drones:int = 5,
     info(time_stamp() + "*** Scenario 1: BS1 sends initial coordinates to Drone 3\n")
     info(time_stamp() + "*** Scenario 1 Expected: Coordinates set to 50.01 10.01\n")
     set_rest_location(bs1, iterations=iterations_count, interval=wait_time_in_seconds,
-                 target=drones[0].params['ip'], coordinates=' 50.01 10.01')
+                 target=drones[-1].params['ip'], coordinates=' 50.01 10.01')
     ################################### SCENARIO 02 ###################################
     info(time_stamp() + "*** Scenario 2: BS1 changes the destination coordinates through Drone 2\n")
     info(time_stamp() + "*** Scenario 2 Expected: Coordinates set to 50.02 10.02\n")
@@ -122,7 +122,7 @@ the compromised drone tries to change the destination coordinates\n")
     info(time_stamp() + "*** Scenario 4 Expected: Coordinates keep to 50.02 10.02 (Exploited if set to 50.02 10.04)\n")
     bs1.cmd("pkill -9 -f /rest/locationRestServer.py &")
     set_rest_location(drones[4], iterations=iterations_count, interval=wait_time_in_seconds,
-                 target=drones[1], coordinates='50.02 10.04')
+                 target=drones[1].params['ip'], coordinates='50.02 10.04')
     ################################### SCENARIO 05 ###################################
     info(time_stamp() + "*** Scenario 5: A compromised base station joins the network tries to change the destination coordinates\n")
     info(time_stamp() + "*** Scenario 5 Expected: Coordinates keep to 50.02 10.02 (Exploited if set to 50.02 10.05)\n")
@@ -138,7 +138,7 @@ the compromised drone tries to change the destination coordinates\n")
                 mode='g', channel=5, ht_cap='HT40+')
     makeTerm(bs2, cmd="bash")
     set_rest_location(bs2, iterations=iterations_count, interval=wait_time_in_seconds,
-                 target=drones[2], coordinates='50.02 10.05')
+                 target=drones[2].params['ip'], coordinates='50.02 10.05')
 
     save_logs_to_results()
 
@@ -165,10 +165,10 @@ if __name__ == '__main__':
     kill_containers()
 
     if len(sys.argv) >= 1:
-        print('number of drones: ' + sys.argv[1])
+        print('number of drones: ' + str(sys.argv[1]))
         simulate(number_of_drones=int(sys.argv[1]),
                 iterations_count=5,
                 wait_time_in_seconds=5,
-                skip_cli=True)
+                skip_cli=False)
     else:
         simulate()

@@ -10,6 +10,8 @@ RUN apt-get update && apt-get install -y \
     iproute2 \
     netcat \
     iperf \
+    curl \
+    systemd \
     sawtooth \
     sawtooth-pbft-engine \
     python3-sawtooth-poet-cli \
@@ -21,19 +23,17 @@ RUN apt-get update && apt-get install -y \
 RUN pip install --upgrade pip==20.3.4
 RUN pip install flask && pip install requests
 RUN pip install pandas
-RUN apt install sudo
-RUN apt-get install systemd -y
-RUN mkdir /data
-RUN mkdir /poet-shared
 RUN pip install pyzmq
 RUN pip install pathlib
-RUN apt install curl -y
+RUN apt install sudo
+RUN mkdir /data
+RUN mkdir /poet-shared
 COPY rest/* /rest/
-COPY rest/tmp_drones.json /tmp/drones.json
 COPY sawtooth_scripts/* /sawtooth_scripts/
 COPY sawtooth_scripts/bashrc_template /root/.bash_aliases
 RUN chmod +x /sawtooth_scripts/*
 RUN chown sawtooth:sawtooth /var/lib/sawtooth
+ADD rest/tmp_drones.json /tmp/drones.json
 
 EXPOSE 4004
 EXPOSE 8008
