@@ -34,6 +34,7 @@ COPY sawtooth_scripts/bashrc_template /root/.bash_aliases
 RUN chmod +x /sawtooth_scripts/*
 RUN chown sawtooth:sawtooth /var/lib/sawtooth
 ADD rest/tmp_drones.json /tmp/drones.json
+ADD sawtooth_scripts/drones.txt /tmp/drones.txt
 
 EXPOSE 4004
 EXPOSE 8008

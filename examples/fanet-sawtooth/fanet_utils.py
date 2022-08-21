@@ -40,6 +40,13 @@ def create_json_drones(number_of_drones):
     os.system('cd examples/example-containers && ./build.sh')
 
 
+def create_txt_drones(number_of_drones):
+    with open('examples/example-containers/sawtooth_scripts/drones.txt', 'w') as file:
+        for i in range(number_of_drones):
+            my_ip = '10.0.0.1' + str(i)
+            file.write(my_ip + '\n') 
+
+
 def setup_network(net: Containernet, *argv):
     net.setPropagationModel(model="logDistance", exp=4.5)
 
@@ -104,17 +111,29 @@ def initialize_sawtooth(should_open_terminal=False, wait_time_in_seconds: int = 
                         keep_terminal_alive=False, *args):
     for node in args:
         start_validator(node, should_open_terminal,
-                        wait_time_in_seconds, keep_terminal_alive)
+                        wait_time_in_seconds, keep_terminal_alive, False)
         start_rest_api(node, should_open_terminal=False)
         start_transaction_processors( node,
             should_open_terminal=False)
         start_consensus_mechanism(node, should_open_terminal=False)
 
 
+def initialize_parameterized_sawtooth(should_open_terminal=False, wait_time_in_seconds: int = 0,
+                        keep_terminal_alive=False, *args):
+    for node in args:
+        start_validator(node, should_open_terminal,
+                        wait_time_in_seconds, keep_terminal_alive, True)
+        start_rest_api(node, should_open_terminal=True)
+        start_transaction_processors( node,
+            should_open_terminal=True)
+        start_consensus_mechanism(node, should_open_terminal=True)
+
+
 def start_validator(node: any,
                     should_open_terminal: bool = False,
                     wait_time_in_seconds: int = 2,
-                    keep_terminal_alive=False):
+                    keep_terminal_alive=False,
+                    is_parameterized=False):
     """Start the Validator
 
     Args:
@@ -124,7 +143,12 @@ def start_validator(node: any,
         keep_terminal_alive (bool, optional): Leave the terminal open if it fails
     """
     station_name = str(node.name)
-    command = 'bash /sawtooth_scripts/validator.sh ' + station_name
+    if is_parameterized and station_name == 'base1':
+        command = 'bash /sawtooth_scripts/validator_parametrized.sh base1'
+    elif is_parameterized and station_name.startswith('drone'):
+        command = 'bash /sawtooth_scripts/validator_parametrized.sh drone'
+    else:
+        command = 'bash /sawtooth_scripts/validator.sh ' + station_name
 
     info(time_stamp() + '*** Generating sawtooth keypair for ' + station_name + ' ***\n')
 

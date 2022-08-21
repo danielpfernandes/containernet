@@ -14,11 +14,12 @@ from containernet.net import Containernet
 from containernet.node import DockerSta
 from containernet.term import makeTerm
 
-from fanet_utils import get_sawtooth_destination, initialize_sawtooth, save_logs_to_results, validate_scenario, kill_containers, \
+from fanet_utils import create_txt_drones, get_sawtooth_destination, initialize_parameterized_sawtooth, initialize_sawtooth, save_logs_to_results, validate_scenario, kill_containers, \
     kill_process, set_sawtooth_location, set_rest_location, setup_network, time_stamp
 
 
-def simulate(iterations_count: int = 5,
+def simulate(number_of_drones = 5,
+            iterations_count: int = 5,
              wait_time_in_seconds: int = 5,
              skip_cli = False):
     
@@ -28,6 +29,8 @@ def simulate(iterations_count: int = 5,
     ports = [4004, 8008, 8800, 5050, 3030, 5000]
     docker_image = "containernet_example:sawtoothAll"
     drones = []
+
+    create_txt_drones(number_of_drones)
     
     info( time_stamp() + '*** Starting monitors\n')
     grafana = subprocess.Popen(
@@ -50,7 +53,7 @@ def simulate(iterations_count: int = 5,
 
     info(time_stamp() + '*** Adding docker drones\n')
 
-    for i in range(10):
+    for i in range(number_of_drones):
         name = 'drone' + str(i)
         my_ip = '10.0.0.1' + str(i)
         if i < 10:
@@ -74,10 +77,10 @@ def simulate(iterations_count: int = 5,
     setup_network(net, bs1, *drones)
 
     info(time_stamp() + '*** Starting Sawtooth on the Base Station ***\n')
-    initialize_sawtooth(should_open_xterm, 0, should_open_xterm, bs1)
+    initialize_parameterized_sawtooth(should_open_xterm, 0, should_open_xterm, bs1)
 
     info(time_stamp() + '*** Starting Sawtooth on the Drones ***\n')
-    initialize_sawtooth(should_open_xterm, 0, should_open_xterm, *drones)
+    initialize_parameterized_sawtooth(should_open_xterm, 0, should_open_xterm, *drones)
 
     if not skip_cli:
         info(time_stamp() + '*** Start drone terminals\n')
@@ -106,21 +109,21 @@ def simulate(iterations_count: int = 5,
             " network validates the update of the information\n")
     info(time_stamp() + "*** Scenario 6 Expected: Coordinates set to 50011001101\n")
     set_sawtooth_location(bs1, sc06_coords, iterations=iterations_count, interval=wait_time_in_seconds)
-    validate_scenario(net, expected_sc06, get_destinations(d1, d2, d3, d4))
+    validate_scenario(net, expected_sc06, get_destinations(*drones))
         
     ################################### SCENARIO 07 ###################################
     info(time_stamp() + "*** Scenario 7: BS1 sends changes the coordinates and the Sawtooth"\
             " network validates the update of the information\n")
     info(time_stamp() + "*** Scenario 7 Expected: Coordinates set to 50021002102\n")
     set_sawtooth_location(bs1, sc07_coords, iterations=iterations_count, interval=wait_time_in_seconds)
-    validate_scenario(net, expected_sc07, get_destinations(d1, d2, d3, d4))
+    validate_scenario(net, expected_sc07, get_destinations(*drones))
 
     ################################### SCENARIO 08 ###################################
     info(time_stamp() + "*** Scenario 8: A  Drone 5 is compromised and tries to change the destination coordinates"\
         "using the unprotected REST Interface\n")
     info(time_stamp() + "*** Scenario 3 Expected: Coordinates keep to 50021002102 (Exploited if set to 50301030303)\n")
     set_rest_location(d5, iterations_count, wait_time_in_seconds, target='10.0.0.249', coordinates=sc08_coords)
-    validate_scenario(net, expected_sc07, get_destinations(d1, d2, d3, d4))
+    validate_scenario(net, expected_sc07, get_destinations(*drones))
     
     ################################### SCENARIO 09 ###################################
     info(time_stamp() + "*** Scenario 9: Connection with the base station is lost and" \
@@ -128,7 +131,7 @@ def simulate(iterations_count: int = 5,
     info(time_stamp() + "*** Scenario 9 Expected: Coordinates keep to 50041004104\n")
     os.system('docker container rm mn.base1 --force')
     set_sawtooth_location(d2, sc09_coords, iterations=iterations_count, interval=wait_time_in_seconds)   
-    validate_scenario(net, expected_sc09, get_destinations(d1, d2, d3, d4))
+    validate_scenario(net, expected_sc09, get_destinations(*drones))
 
     ################################### SCENARIO 10 ###################################
     info(time_stamp() + "*** Scenario 10:  compromised base station joins the network tries to change the destination"\
@@ -173,8 +176,11 @@ def save_sawtooth_logs(*args):
         node.cmd('mkdir /data/sawtooth/ && cp /var/log/sawtooth/* /data/sawtooth/')
 
     
-def get_destinations(d1, d2, d3, d4):
-    return get_sawtooth_destination(d1),get_sawtooth_destination(d2),get_sawtooth_destination(d3),get_sawtooth_destination(d4)
+def get_destinations(*args):
+    destinations = []
+    for drone in args:
+        destinations.append(get_sawtooth_destination(drone))
+    return destinations
 
 
 if __name__ == '__main__':
