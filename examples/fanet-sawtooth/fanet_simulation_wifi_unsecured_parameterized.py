@@ -18,10 +18,10 @@ from containernet.term import makeTerm
 from fanet_utils import create_json_drones, kill_containers, save_logs_to_results, set_rest_location, setup_network, time_stamp
 
 
-def simulate(iterations_count: int = 5,
-             wait_time_in_seconds: int = 5,
-             number_of_drones = 5,
-             skip_cli = False):
+def simulate(number_of_drones:int = 5,
+            iterations_count: int = 5,
+            wait_time_in_seconds: int = 5,
+            skip_cli = False):
 
     START_LOCATION_SERVER = 'touch /data/locations.csv && python /rest/locationRestServer.py &'
     TAIL_LOCATIONS_LOG = "tail -f /data/locations.csv"
@@ -164,11 +164,11 @@ if __name__ == '__main__':
     kill_process()
     kill_containers()
 
-    if len(sys.argv) == 4 and sys.argv[0] is not 'sudo':
-        skip_cli = True
-        print('iterations: ' + sys.argv[1])
-        print('wait time: ' + sys.argv[2])
-        print('number of drones: ' + sys.argv[3])
-        simulate(sys.argv[1], sys.argv[2], sys.argv[3], skip_cli)
+    if len(sys.argv) >= 1:
+        print('number of drones: ' + sys.argv[1])
+        simulate(number_of_drones=int(sys.argv[1]),
+                iterations_count=5,
+                wait_time_in_seconds=5,
+                skip_cli=True)
     else:
         simulate()

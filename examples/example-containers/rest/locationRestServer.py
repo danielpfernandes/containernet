@@ -5,9 +5,9 @@ import logging
 import codecs
 import socket
 import pandas as pd
+import os.path
 
 from flask import Flask, json, request
-from pathlib import Path
 from datetime import datetime
 
 LOCATION_REST_SERVER_LOG_PATH = "/data/locationRestServer.log"
@@ -23,20 +23,22 @@ LATITUDE_KEY = 'latitude'
 LONGITUDE_KEY = 'longitude'
 TIMESTAMP_KEY = 'timestamp'
 
-
-def coord_time_stamp():
-    return str(datetime.now().strftime('%Y-%m-%dT%H-%M-%S'))
-
 # Places the log files into /data/ directory
-logging.basicConfig(filename=LOCATION_REST_SERVER_LOG_PATH,
-                    filemode='a',
-                    format="%(asctime)s %(name)s:%(levelname)s:%(message)s",
-                    level=logging.DEBUG)
+for handler in logging.root.handlers[:]:
+    logging.root.removeHandler(handler)
 
-locations = [{TIMESTAMP_KEY: coord_time_stamp(), LATITUDE_KEY: 0, LONGITUDE_KEY: 0}]
+logging.basicConfig(filename=LOCATION_REST_SERVER_LOG_PATH,
+                    filemode='w',
+                    format="%(asctime)s %(name)s:%(levelname)s:%(message)s")
+
+console = logging.StreamHandler()
+console.setLevel(logging.INFO)
+
+logging.getLogger().addHandler(console)
 
 api = Flask(__name__)
-api.config['DEBUG'] = True
+locations = [{TIMESTAMP_KEY: str(datetime.now().strftime('%Y-%m-%dT%H-%M-%S')), LATITUDE_KEY: 0, LONGITUDE_KEY: 0}]
+api.testing = True
 
 def extract_ip():
     """
@@ -64,9 +66,12 @@ def propagate_message(new_coordinates):
     """
 
     # The file that contains the IP address from the hosts in the network
-    if Path(DRONES_PARAMETRIZED_IP_ADDRESSES_JSON_PATH).is_file():
+    logging.info('Set which IP address to use')
+    if os.path.exists(DRONES_PARAMETRIZED_IP_ADDRESSES_JSON_PATH):
+        logging.info('Using IP addresses from parametrized drones')
         fanet_hosts = open(DRONES_PARAMETRIZED_IP_ADDRESSES_JSON_PATH)
     else:
+        logging.info('Using predefined drone addresses')
         fanet_hosts = open(DRONES_STATIC_IP_ADDRESSES_JSON_PATH)
     json_array = json.load(fanet_hosts)
     drones_ip_list = []
@@ -163,10 +168,10 @@ def propagate_locations():
     try:
         base_station_url = 'http://' + BASE_STATION_IP + ':5000/validate'
         if validate_coordinates_with_base_station(request.get_json(), base_station_url):
-            propagate(request)
-
-        # Fails if the validation does not match
-        return 'Propagation failed', 500
+            return propagate(request)
+        else:
+            # Fails if the validation does not match
+            return 'Propagation failed', 500
 
     # If the connection with the base station is lost, show must go on :)
     except:
@@ -184,4 +189,4 @@ def validate_locations():
 
 
 if __name__ == '__main__':
-    api.run(host=LOCALHOST_IP)
+    api.run(host=LOCALHOST_IP, debug=True)
