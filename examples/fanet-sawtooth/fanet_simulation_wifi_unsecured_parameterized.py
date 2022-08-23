@@ -114,14 +114,14 @@ def simulate(number_of_drones:int = 5,
     ################################### SCENARIO 03 ###################################
     info(time_stamp() + "*** Scenario 3: Drone 5 is compromised and tries to change the destination coordinates\n")
     info(time_stamp() + "*** Scenario 3 Expected: Coordinates keep to 50.02 10.02 (Exploited if set to 50.02 10.03)\n")
-    set_rest_location(drones[4], iterations=iterations_count, interval=wait_time_in_seconds,
+    set_rest_location(drones[-2], iterations=iterations_count, interval=wait_time_in_seconds,
                  target=drones[1].params['ip'], coordinates='50.02 10.03')
     ################################### SCENARIO 04 ###################################
     info(time_stamp() + "*** Scenario 4: Connection with the base station is lost and \
 the compromised drone tries to change the destination coordinates\n")
     info(time_stamp() + "*** Scenario 4 Expected: Coordinates keep to 50.02 10.02 (Exploited if set to 50.02 10.04)\n")
     bs1.cmd("pkill -9 -f /rest/locationRestServer.py &")
-    set_rest_location(drones[4], iterations=iterations_count, interval=wait_time_in_seconds,
+    set_rest_location(drones[-2], iterations=iterations_count, interval=wait_time_in_seconds,
                  target=drones[1].params['ip'], coordinates='50.02 10.04')
     ################################### SCENARIO 05 ###################################
     info(time_stamp() + "*** Scenario 5: A compromised base station joins the network tries to change the destination coordinates\n")

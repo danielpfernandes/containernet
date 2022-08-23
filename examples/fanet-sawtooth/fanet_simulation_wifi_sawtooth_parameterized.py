@@ -122,7 +122,7 @@ def simulate(number_of_drones = 5,
     info(time_stamp() + "*** Scenario 8: A  Drone 5 is compromised and tries to change the destination coordinates"\
         "using the unprotected REST Interface\n")
     info(time_stamp() + "*** Scenario 3 Expected: Coordinates keep to 50021002102 (Exploited if set to 50301030303)\n")
-    set_rest_location(d5, iterations_count, wait_time_in_seconds, target='10.0.0.249', coordinates=sc08_coords)
+    set_rest_location(drones[0], iterations_count, wait_time_in_seconds, target='10.0.0.249', coordinates=sc08_coords)
     validate_scenario(net, expected_sc07, get_destinations(*drones))
     
     ################################### SCENARIO 09 ###################################
@@ -130,7 +130,7 @@ def simulate(number_of_drones = 5,
         "drone2 needs to rearrange the destination coordinates for emergency purposes\n")
     info(time_stamp() + "*** Scenario 9 Expected: Coordinates keep to 50041004104\n")
     os.system('docker container rm mn.base1 --force')
-    set_sawtooth_location(d2, sc09_coords, iterations=iterations_count, interval=wait_time_in_seconds)   
+    set_sawtooth_location(drones[-1], sc09_coords, iterations=iterations_count, interval=wait_time_in_seconds)   
     validate_scenario(net, expected_sc09, get_destinations(*drones))
 
     ################################### SCENARIO 10 ###################################
@@ -141,10 +141,10 @@ def simulate(number_of_drones = 5,
     if not skip_cli:
         makeTerm(bs2, cmd="bash")
     set_rest_location(bs2, iterations_count, wait_time_in_seconds, '10.0.0.250', coordinates=sc10_coords)
-    validate_scenario(net, expected_sc07, get_destinations(d1, d2, d3, d4))
+    validate_scenario(net, expected_sc07, get_destinations(*drones))
     
     info(time_stamp() + "*** Saving Drones logs at /tmp/drone/data/sawtooth/\n")
-    save_sawtooth_logs(d1, d2, d3, d4)
+    save_sawtooth_logs(*drones)
     save_logs_to_results()
     
     if not skip_cli:

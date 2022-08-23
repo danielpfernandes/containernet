@@ -333,6 +333,8 @@ def kill_process():
 
 
 def kill_containers():
+    os.system('rm -f examples/example-containers/rest/tmp_drones.json')
+    os.system('rm -f examples/example-containers/sawtooth_scripts/drones.txt')
     os.system('kill -TERM $(pgrep -f prometheus)')
     os.system('rm examples/uav/data/*')
     os.system('rm -rf /tmp/poet-shared')
