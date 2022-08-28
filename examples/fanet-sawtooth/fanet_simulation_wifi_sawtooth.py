@@ -152,7 +152,7 @@ def simulate(iterations_count: int = 5,
     sc10_coords = '5002 1005'
     expected_sc06 = '50011001'
     expected_sc07 = '50021002'
-    expected_sc09 = '50041004'
+    expected_sc09 = '50021004'
     
     ################################### SCENARIO 06 ###################################
     info(time_stamp() + "*** Scenario 6: BS1 sends the new coordinates and the Sawtooth"\
@@ -177,7 +177,7 @@ def simulate(iterations_count: int = 5,
     
     ################################### SCENARIO 09 ###################################
     info(time_stamp() + "*** Scenario 9: Connection with the base station is lost and" \
-        "drone2 needs to rearrange the destination coordinates for emergency purposes\n")
+        " drone2 needs to rearrange the destination coordinates for emergency purposes\n")
     info(time_stamp() + "*** Scenario 9 Expected: Coordinates keep to 50041004104\n")
     os.system('docker container rm mn.base1 --force')
     set_sawtooth_location(d2, sc09_coords, iterations=iterations_count, interval=wait_time_in_seconds)   
@@ -236,7 +236,7 @@ if __name__ == '__main__':
     kill_process()
     kill_containers()
     
-    if len(sys.argv) == 3 and str(sys.argv[0]) is not 'sudo':
+    if len(sys.argv) == 3 and str(sys.argv[0]) != "sudo":
         skip_cli = True
         print('iterations: ' + sys.argv[1])
         print('wait time: ' + sys.argv[2])

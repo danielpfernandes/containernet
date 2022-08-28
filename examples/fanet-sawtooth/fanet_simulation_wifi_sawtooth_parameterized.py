@@ -82,10 +82,8 @@ def simulate(number_of_drones = 5,
     info(time_stamp() + '*** Starting Sawtooth on the Drones ***\n')
     initialize_parameterized_sawtooth(should_open_xterm, 0, should_open_xterm, *drones)
 
-    if not skip_cli:
-        info(time_stamp() + '*** Start drone terminals\n')
-        for drone in drones:
-            makeTerm(drone, cmd="bash")
+    info(time_stamp() + '*** Start base terminal\n')   
+    makeTerm(bs1, cmd="bash")
 
 
     info(time_stamp() + '*** Waiting until the the Sawtooth peer connection\n')
@@ -189,10 +187,14 @@ if __name__ == '__main__':
     kill_process()
     kill_containers()
     
-    if len(sys.argv) == 3 and str(sys.argv[0]) is not 'sudo':
+    if len(sys.argv) == 3 and str(sys.argv[0]) != "sudo":
         skip_cli = True
-        print('iterations: ' + sys.argv[1])
-        print('wait time: ' + sys.argv[2])
-        simulate(sys.argv[1], sys.argv[2], skip_cli)
+        print('number of drones: ' + sys.argv[1])
+        print('iterations: ' + sys.argv[2])
+        print('wait time: ' + sys.argv[3])
+        simulate(number_of_drones=int(sys.argv[1]),
+                 iterations_count=int(sys.argv[2]),
+                 wait_time_in_seconds=int(sys.argv[3]),
+                 skip_cli=skip_cli)
     else:
         simulate()

@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 import numbers
 import os
 import time
@@ -84,24 +85,62 @@ def consensus_algorithm_menu():
 
 def run_unprotected_scenario(option: int):
     os.system("clear")
-    if option == 1: os.system("sudo python examples/fanet-sawtooth/fanet_simulation_wifi_unsecured.py")
+    if option == 1:
+        os.system("sudo python examples/fanet-sawtooth/fanet_simulation_wifi_unsecured.py")
+        pause()
     elif option == 2:
-        print("Enter the number of  drones")
-        number_of_drones = get_option()
-        os.system("sudo python examples/fanet-sawtooth/fanet_simulation_wifi_unsecured_parameterized.py " + str(number_of_drones))
+        number_of_drones = validate_number_of_drones(3)
+        iterations, interval = get_iterations_and_interval()
+        os.system("sudo python examples/fanet-sawtooth/fanet_simulation_wifi_unsecured_parameterized.py " 
+        + str(number_of_drones) + " "
+        + str(iterations) + " "
+        + str(interval))
+        pause()
 
 
 def run_sawtooth_scenario(option: int):
     os.system("clear")
-    if option == 1: os.system("sudo python examples/fanet-sawtooth/fanet_simulation_wifi_sawtooth.py")
+    if option == 1:
+        os.system("sudo python examples/fanet-sawtooth/fanet_simulation_wifi_sawtooth.py")
+        pause()
     elif option == 2:
+        number_of_drones = validate_number_of_drones(3)
+        iterations, interval = get_iterations_and_interval()
+        os.system("sudo python examples/fanet-sawtooth/fanet_simulation_wifi_sawtooth_parameterized.py " 
+        + str(number_of_drones) + " "
+        + str(iterations) + " "
+        + str(interval))
+        pause()
+
+
+def get_iterations_and_interval() -> tuple:
+    print("Enter how many times the drones will trigger the messaging events")
+    iterations = get_option()
+    print("Enter the interval in seconds between the messages")
+    interval = get_option()
+    total_seconds = (int(interval)+1) * int(iterations) * 5
+    m, s = divmod(total_seconds, 60)
+    h, m = divmod(m, 60)
+    print("Estimated simulation time: " + f'{h:d}:{m:02d}:{s:02d}')
+    return iterations, interval
+
+
+def validate_number_of_drones(minimum_qty: int) -> int:
+    number_of_drones = 0
+    while number_of_drones < minimum_qty:
         print("Enter the number of  drones")
         number_of_drones = get_option()
-        os.system("sudo python examples/fanet-sawtooth/fanet_simulation_wifi_sawtooth_parameterized.py " + str(number_of_drones))
+        if number_of_drones < minimum_qty:
+            print ("Invalid quantity, this simulation required at least {:d} drones".format(minimum_qty))
+    return number_of_drones
 
 
 def get_option() -> int:
     return int(input("Enter your option: "))
+
+
+def pause():
+    input("Press any key to continue...")
 
 
 main_menu()

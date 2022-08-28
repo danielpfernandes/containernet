@@ -45,7 +45,9 @@ def create_txt_drones(number_of_drones):
     with open('examples/example-containers/sawtooth_scripts/drones.txt', 'w') as file:
         for i in range(number_of_drones):
             my_ip = '10.0.0.1' + str(i)
-            file.write(my_ip + '\n') 
+            file.write(my_ip + '\n')
+    
+    os.system('cd examples/example-containers && ./build.sh')
 
 
 def setup_network(net: Containernet, *argv):
@@ -119,15 +121,15 @@ def initialize_sawtooth(should_open_terminal=False, wait_time_in_seconds: int = 
         start_consensus_mechanism(node, should_open_terminal=False)
 
 
-def initialize_parameterized_sawtooth(should_open_terminal=False, wait_time_in_seconds: int = 0,
-                        keep_terminal_alive=False, *args):
+def initialize_parameterized_sawtooth(should_open_terminal=False,
+                                      wait_time_in_seconds: int = 0,
+                                      keep_terminal_alive=False,
+                                      *args):
     for node in args:
-        start_validator(node, should_open_terminal,
-                        wait_time_in_seconds, keep_terminal_alive, True)
-        start_rest_api(node, should_open_terminal=True)
-        start_transaction_processors( node,
-            should_open_terminal=True)
-        start_consensus_mechanism(node, should_open_terminal=True)
+        start_validator(node, should_open_terminal, wait_time_in_seconds, keep_terminal_alive, True)
+        start_rest_api(node, should_open_terminal=False)
+        start_transaction_processors( node, should_open_terminal=False)
+        start_consensus_mechanism(node, should_open_terminal=False)
 
 
 def start_validator(node: any,
