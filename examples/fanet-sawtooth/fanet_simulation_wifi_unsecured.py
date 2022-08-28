@@ -15,7 +15,7 @@ from mn_wifi.link import adhoc
 from containernet.net import Containernet
 from containernet.node import DockerSta
 from containernet.term import makeTerm
-from fanet_utils import kill_containers, save_logs_to_results, set_rest_location, setup_network, time_stamp
+from fanet_utils import kill_containers, kill_process, save_logs_to_results, set_rest_location, setup_network, time_stamp
 
 
 def simulate(iterations_count: int = 5,
@@ -198,20 +198,13 @@ the compromised drone tries to change the destination coordinates\n")
     save_logs_to_results()
 
 
-def kill_process():
-    # os.system('pkill -9 -f coppeliaSim')
-    os.system('pkill -9 -f simpleTest.py')
-    os.system('pkill -9 -f setNodePosition.py')
-    os.system('rm examples/uav/data/*')
-
-
 if __name__ == '__main__':
     setLogLevel('info')
     # Killing old processes
     kill_process()
     kill_containers()
 
-    if len(sys.argv) == 3 and sys.argv[0] is not 'sudo':
+    if len(sys.argv) == 3 and str(sys.argv[0]) != "sudo":
         skip_cli = True
         print('iterations: ' + sys.argv[1])
         print('wait time: ' + sys.argv[2])

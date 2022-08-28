@@ -7,6 +7,7 @@ from datetime import datetime
 from mininet.log import info
 from mn_wifi.link import adhoc
 from pandas import array
+from build.lib.containernet.clean import Cleanup
 
 from containernet.net import Containernet
 from containernet.term import makeTerm
@@ -34,7 +35,7 @@ def create_json_drones(number_of_drones):
         my_ip = '10.0.0.1' + str(i)
         my_drones.append({'id': name, 'address': my_ip})
 
-    with open('examples/example-containers/rest/tmp_drones.json', 'w') as file:
+    with open('examples/example-containers/rest_scripts/parametrized_drones.json', 'w') as file:
         json.dump(my_drones, file)
     
     os.system('cd examples/example-containers && ./build.sh')
@@ -143,7 +144,7 @@ def start_validator(node: any,
         keep_terminal_alive (bool, optional): Leave the terminal open if it fails
     """
     station_name = str(node.name)
-    if is_parameterized and station_name == 'base1':
+    if is_parameterized and str(station_name) == "base1":
         command = 'bash /sawtooth_scripts/validator_parametrized.sh base1'
     elif is_parameterized and station_name.startswith('drone'):
         command = 'bash /sawtooth_scripts/validator_parametrized.sh drone'
@@ -152,7 +153,7 @@ def start_validator(node: any,
 
     info(time_stamp() + '*** Generating sawtooth keypair for ' + station_name + ' ***\n')
 
-    if station_name is 'base1':
+    if str(station_name) == "base1":
         info(time_stamp() + '*** Create the Genesis Block on Base Station\n')
         info(time_stamp() + '*** Create a batch to initialize the consensus settings on the Base Station\n')
         info(time_stamp() + '*** Combining batches in one genesis batch on Base Station ***\n')
@@ -303,7 +304,7 @@ def is_simulation_successful(expected_coord, coordinates) -> bool:
     
     for result in coordinates:
         expected_result = expected_coord in result
-        if expected_result is False:
+        if expected_result == False:
             return expected_result
     
     return expected_result
@@ -330,13 +331,14 @@ def kill_process():
     # os.system('pkill -9 -f coppeliaSim')
     os.system('pkill -9 -f simpleTest.py')
     os.system('pkill -9 -f setNodePosition.py')
+    os.system('rm -f examples/uav/data/*')
 
 
 def kill_containers():
-    os.system('rm -f examples/example-containers/rest/tmp_drones.json')
+    os.system('rm -f examples/example-containers/rest/parametrized_drones.json')
     os.system('rm -f examples/example-containers/sawtooth_scripts/drones.txt')
     os.system('kill -TERM $(pgrep -f prometheus)')
-    os.system('rm examples/uav/data/*')
+    os.system('rm -f examples/uav/data/*')
     os.system('rm -rf /tmp/poet-shared')
     os.system('docker container rm $(docker ps -a -q) --force')
     os.system('service docker restart')

@@ -15,7 +15,7 @@ from mn_wifi.link import adhoc
 from containernet.net import Containernet
 from containernet.node import DockerSta
 from containernet.term import makeTerm
-from fanet_utils import create_json_drones, kill_containers, save_logs_to_results, set_rest_location, setup_network, time_stamp
+from fanet_utils import create_json_drones, kill_containers, kill_process, save_logs_to_results, set_rest_location, setup_network, time_stamp
 
 
 def simulate(number_of_drones:int = 5,
@@ -23,7 +23,7 @@ def simulate(number_of_drones:int = 5,
             wait_time_in_seconds: int = 5,
             skip_cli = False):
 
-    START_LOCATION_SERVER = 'touch /data/locations.csv && python /rest/locationRestServer.py &'
+    START_LOCATION_SERVER = 'touch /data/locations.csv && python /rest/locationRestServerParameterized.py &'
     TAIL_LOCATIONS_LOG = "tail -f /data/locations.csv"
     
     iterations_count = int(iterations_count)
@@ -86,7 +86,7 @@ def simulate(number_of_drones:int = 5,
         drone.cmd(START_LOCATION_SERVER)
 
     info(time_stamp() + '*** Starting Validation REST server on base station\n')
-    bs1.cmd('python /rest/locationRestServer.py &')
+    bs1.cmd('python /rest/locationRestServerParameterized.py &')
 
     info(time_stamp() + '*** Start drone terminals\n')
     if not skip_cli:
@@ -120,7 +120,7 @@ def simulate(number_of_drones:int = 5,
     info(time_stamp() + "*** Scenario 4: Connection with the base station is lost and \
 the compromised drone tries to change the destination coordinates\n")
     info(time_stamp() + "*** Scenario 4 Expected: Coordinates keep to 50.02 10.02 (Exploited if set to 50.02 10.04)\n")
-    bs1.cmd("pkill -9 -f /rest/locationRestServer.py &")
+    bs1.cmd("pkill -9 -f /rest/locationRestServerParameterized.py &")
     set_rest_location(drones[-2], iterations=iterations_count, interval=wait_time_in_seconds,
                  target=drones[1].params['ip'], coordinates='50.02 10.04')
     ################################### SCENARIO 05 ###################################
@@ -149,13 +149,6 @@ the compromised drone tries to change the destination coordinates\n")
     kill_process()
     net.stop()
     save_logs_to_results()
-
-
-def kill_process():
-    # os.system('pkill -9 -f coppeliaSim')
-    os.system('pkill -9 -f simpleTest.py')
-    os.system('pkill -9 -f setNodePosition.py')
-    os.system('rm examples/uav/data/*')
 
 
 if __name__ == '__main__':

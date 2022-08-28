@@ -15,8 +15,7 @@ LOCATION_DATA_CSV_PATH = '/data/locations.csv'
 LOCATION_DATA_JSON_PATH = '/data/locations.json'
 CURRENT_DESTINATION_FILE_PATH = '/data/currentDestination.json'
 VALIDATION_FILE_PATH = '/tmp/currentDestination.json'
-DRONES_STATIC_IP_ADDRESSES_JSON_PATH = '/data/drones.json'
-DRONES_PARAMETRIZED_IP_ADDRESSES_JSON_PATH = '/tmp/drones.json'
+DRONES_IP_ADDRESSES = '/rest/parametrized_drones.json'
 BASE_STATION_IP = '10.0.0.1'
 LOCALHOST_IP = '0.0.0.0'
 LATITUDE_KEY = 'latitude'
@@ -67,12 +66,7 @@ def propagate_message(new_coordinates):
 
     # The file that contains the IP address from the hosts in the network
     logging.info('Set which IP address to use')
-    if os.path.exists(DRONES_PARAMETRIZED_IP_ADDRESSES_JSON_PATH):
-        logging.info('Using IP addresses from parametrized drones')
-        fanet_hosts = open(DRONES_PARAMETRIZED_IP_ADDRESSES_JSON_PATH)
-    else:
-        logging.info('Using predefined drone addresses')
-        fanet_hosts = open(DRONES_STATIC_IP_ADDRESSES_JSON_PATH)
+    fanet_hosts = open(DRONES_IP_ADDRESSES)
     json_array = json.load(fanet_hosts)
     drones_ip_list = []
 

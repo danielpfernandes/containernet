@@ -189,7 +189,7 @@ if __name__ == '__main__':
     kill_process()
     kill_containers()
     
-    if len(sys.argv) == 3 and sys.argv[0] is not 'sudo':
+    if len(sys.argv) == 3 and str(sys.argv[0]) is not 'sudo':
         skip_cli = True
         print('iterations: ' + sys.argv[1])
         print('wait time: ' + sys.argv[2])

@@ -25,5 +25,5 @@ openflow
 \#*\#
 prometheus-*.tar.gz
 map.html
-examples/example-containers/rest/tmp_drones.json
+examples/example-containers/rest_scripts/parametrized_drones.json
 examples/example-containers/sawtooth_scripts/drones.txt
