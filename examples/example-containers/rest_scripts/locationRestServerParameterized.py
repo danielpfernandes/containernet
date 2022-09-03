@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
-import subprocess
-import requests
-import logging
 import codecs
+import logging
 import socket
-import pandas as pd
-import os.path
-
-from flask import Flask, json, request
+import subprocess
 from datetime import datetime
+
+import pandas as pd
+import requests
+from flask import Flask, json, request
 
 LOCATION_REST_SERVER_LOG_PATH = "/data/locationRestServer.log"
 LOCATION_DATA_CSV_PATH = '/data/locations.csv'
@@ -39,6 +38,7 @@ api = Flask(__name__)
 locations = [{TIMESTAMP_KEY: str(datetime.now().strftime('%Y-%m-%dT%H-%M-%S')), LATITUDE_KEY: 0, LONGITUDE_KEY: 0}]
 api.testing = True
 
+
 def extract_ip():
     """
     Extracts the IP address of the running host in the network
@@ -47,13 +47,13 @@ def extract_ip():
     try:
         # Points to the base station to get the host IP
         st.connect((BASE_STATION_IP, 5000))
-        IP = st.getsockname()[0]
+        ip = st.getsockname()[0]
     except Exception:
         print('Could not get the iface address. Using localhost as default')
-        IP = LOCALHOST_IP
+        ip = LOCALHOST_IP
     finally:
         st.close()
-    return IP
+    return ip
 
 
 localhost_ip = extract_ip()
@@ -122,18 +122,19 @@ def validate_coordinates_with_base_station(request_json, base_station_url):
     logging.error(error_message)
     return False
 
+
 def save_location_data(request_json):
-        locations.append(request_json)
-        print(locations)
-        pd.read_json(json.dumps(locations)).to_csv(LOCATION_DATA_CSV_PATH)
-        with open(LOCATION_DATA_JSON_PATH, 'wb') as f:
-            json.dump(locations, codecs.getwriter('utf-8')(f), ensure_ascii=False)
-        with open(CURRENT_DESTINATION_FILE_PATH, 'wb') as f:
-            json.dump(request_json, codecs.getwriter('utf-8')(f), ensure_ascii=False)
+    locations.append(request_json)
+    print(locations)
+    pd.read_json(json.dumps(locations)).to_csv(LOCATION_DATA_CSV_PATH)
+    with open(LOCATION_DATA_JSON_PATH, 'wb') as f:
+        json.dump(locations, codecs.getwriter('utf-8')(f), ensure_ascii=False)
+    with open(CURRENT_DESTINATION_FILE_PATH, 'wb') as f:
+        json.dump(request_json, codecs.getwriter('utf-8')(f), ensure_ascii=False)
+
 
 @api.route('/locations', methods=['GET', 'POST'])
 def handle_locations():
-
     # If the request is a POST method, then it will store the coordinates into the location data files
     if request.method == 'POST':
         save_location_data(request.get_json())
@@ -143,12 +144,12 @@ def handle_locations():
     return json.dumps(locations)
 
 
-def propagate(request):
+def propagate(propagation_request):
     # Add the new coordinate in the JSON and CSV files
-    save_location_data(request.get_json())
+    save_location_data(propagation_request.get_json())
 
     # Propagate the message to the other hosts in the network
-    propagate_message(request.get_json())
+    propagate_message(propagation_request.get_json())
     return json.dumps(locations)
 
 

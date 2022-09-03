@@ -3,7 +3,6 @@
 This is the most simple example to showcase Containernet.
 """
 
-import os
 import subprocess
 import sys
 import time
@@ -15,18 +14,18 @@ from mn_wifi.link import adhoc
 from containernet.net import Containernet
 from containernet.node import DockerSta
 from containernet.term import makeTerm
-from fanet_utils import kill_containers, kill_process, save_logs_to_results, set_rest_location, setup_network, time_stamp
+from fanet_utils import kill_containers, kill_process, save_logs_to_results, set_rest_location, setup_network, \
+    time_stamp
 
 
 def simulate(iterations_count: int = 5,
              wait_time_in_seconds: int = 5,
-             skip_cli = False):
-
-    START_LOCATION_SERVER = 'touch /data/locations.csv && python /rest/locationRestServer.py &'
-    TAIL_LOCATIONS_LOG = "tail -f /data/locations.csv"
+             skip_cli_simulation=False):
+    start_location_server = 'touch /data/locations.csv && python /rest/locationRestServer.py &'
+    tail_locations_log = "tail -f /data/locations.csv"
 
     setLogLevel('info')
-    
+
     iterations_count = int(iterations_count)
     wait_time_in_seconds = int(wait_time_in_seconds)
 
@@ -125,22 +124,22 @@ def simulate(iterations_count: int = 5,
     setup_network(net, bs1, d1, d2, d3, d4, d5)
 
     info(time_stamp() + '*** Starting REST server on drones\n')
-    d1.cmd(START_LOCATION_SERVER)
-    d2.cmd(START_LOCATION_SERVER)
-    d3.cmd(START_LOCATION_SERVER)
-    d4.cmd(START_LOCATION_SERVER)
-    d5.cmd(START_LOCATION_SERVER)
+    d1.cmd(start_location_server)
+    d2.cmd(start_location_server)
+    d3.cmd(start_location_server)
+    d4.cmd(start_location_server)
+    d5.cmd(start_location_server)
 
     info(time_stamp() + '*** Starting Validation REST server on base station\n')
     bs1.cmd('python /rest/locationRestServer.py &')
 
     info(time_stamp() + '*** Start drone terminals\n')
     makeTerm(bs1, cmd="bash")
-    makeTerm(d1, cmd=TAIL_LOCATIONS_LOG)
-    makeTerm(d2, cmd=TAIL_LOCATIONS_LOG)
-    makeTerm(d3, cmd=TAIL_LOCATIONS_LOG)
-    makeTerm(d4, cmd=TAIL_LOCATIONS_LOG)
-    makeTerm(d5, cmd=TAIL_LOCATIONS_LOG)
+    makeTerm(d1, cmd=tail_locations_log)
+    makeTerm(d2, cmd=tail_locations_log)
+    makeTerm(d3, cmd=tail_locations_log)
+    makeTerm(d4, cmd=tail_locations_log)
+    makeTerm(d5, cmd=tail_locations_log)
 
     time.sleep(5)
 
@@ -148,30 +147,31 @@ def simulate(iterations_count: int = 5,
     # setNodePosition = 'python {}/setNodePosition.py '.format(path) + sta_drone_send + ' &'
     # os.system(setNodePosition)
 
-    ################################### SCENARIO 01 ###################################
+    # -------------------------------------- SCENARIO 01 -------------------------------------- #
     info(time_stamp() + "*** Scenario 1: BS1 sends initial coordinates to Drone 3\n")
     info(time_stamp() + "*** Scenario 1 Expected: Coordinates set to 50.01 10.01\n")
     set_rest_location(bs1, iterations=iterations_count, interval=wait_time_in_seconds,
-                 target='10.0.0.251', coordinates=' 50.01 10.01')
-    ################################### SCENARIO 02 ###################################
+                      target='10.0.0.251', coordinates=' 50.01 10.01')
+    # -------------------------------------- SCENARIO 02 -------------------------------------- #
     info(time_stamp() + "*** Scenario 2: BS1 changes the destination coordinates through Drone 2\n")
     info(time_stamp() + "*** Scenario 2 Expected: Coordinates set to 50.02 10.02\n")
     set_rest_location(bs1, iterations=iterations_count, interval=wait_time_in_seconds,
-                 target='10.0.0.250', coordinates='50.02 10.02')
-    ################################### SCENARIO 03 ###################################
+                      target='10.0.0.250', coordinates='50.02 10.02')
+    # -------------------------------------- SCENARIO 03 -------------------------------------- #
     info(time_stamp() + "*** Scenario 3: Drone 5 is compromised and tries to change the destination coordinates\n")
     info(time_stamp() + "*** Scenario 3 Expected: Coordinates keep to 50.02 10.02 (Exploited if set to 50.02 10.03)\n")
     set_rest_location(d5, iterations=iterations_count, interval=wait_time_in_seconds,
-                 target='10.0.0.249', coordinates='50.02 10.03')
-    ################################### SCENARIO 04 ###################################
+                      target='10.0.0.249', coordinates='50.02 10.03')
+    # -------------------------------------- SCENARIO 04 -------------------------------------- #
     info(time_stamp() + "*** Scenario 4: Connection with the base station is lost and \
 the compromised drone tries to change the destination coordinates\n")
     info(time_stamp() + "*** Scenario 4 Expected: Coordinates keep to 50.02 10.02 (Exploited if set to 50.02 10.04)\n")
     bs1.cmd("pkill -9 -f /rest/locationRestServer.py &")
     set_rest_location(d4, iterations=iterations_count, interval=wait_time_in_seconds,
-                 target='10.0.0.250', coordinates='50.02 10.04')
-    ################################### SCENARIO 05 ###################################
-    info(time_stamp() + "*** Scenario 5: A compromised base station joins the network tries to change the destination coordinates\n")
+                      target='10.0.0.250', coordinates='50.02 10.04')
+    # -------------------------------------- SCENARIO 05 -------------------------------------- #
+    info(
+        time_stamp() + "*** Scenario 5: A compromised base station joins the network tries to change the destination coordinates\n")
     info(time_stamp() + "*** Scenario 5 Expected: Coordinates keep to 50.02 10.02 (Exploited if set to 50.02 10.05)\n")
     bs2 = net.addStation('base2',
                          ip='10.0.0.101',
@@ -185,7 +185,7 @@ the compromised drone tries to change the destination coordinates\n")
                 mode='g', channel=5, ht_cap='HT40+')
     makeTerm(bs2, cmd="bash")
     set_rest_location(bs2, iterations=iterations_count, interval=wait_time_in_seconds,
-                 target='10.0.0.251', coordinates='50.02 10.05')
+                      target='10.0.0.251', coordinates='50.02 10.05')
 
     save_logs_to_results()
 
@@ -208,6 +208,6 @@ if __name__ == '__main__':
         skip_cli = True
         print('iterations: ' + sys.argv[1])
         print('wait time: ' + sys.argv[2])
-        simulate(sys.argv[1], sys.argv[2], skip_cli)
+        simulate(int(sys.argv[1]), int(sys.argv[2]), skip_cli)
     else:
         simulate()

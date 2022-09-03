@@ -6,17 +6,18 @@ import json
 from datetime import datetime
 from mininet.log import info
 from mn_wifi.link import adhoc
-from pandas import array
-from build.lib.containernet.clean import Cleanup
 
 from containernet.net import Containernet
 from containernet.term import makeTerm
 
 cmd_keep_alive = '; bash'
 
+consensus_algorithms = ["pbft", "poet"]
+
 
 def time_stamp() -> str:
     return str(datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%s'))
+
 
 def coord_time_stamp() -> str:
     return str(datetime.now().strftime('%Y-%m-%dT%H-%M-%S'))
@@ -29,7 +30,7 @@ def add_link(net: Containernet, node: any):
 
 
 def create_json_drones(number_of_drones):
-    my_drones =  []
+    my_drones = []
     for i in range(number_of_drones):
         name = 'drone' + str(i)
         my_ip = '10.0.0.1' + str(i)
@@ -37,7 +38,7 @@ def create_json_drones(number_of_drones):
 
     with open('examples/example-containers/rest_scripts/parametrized_drones.json', 'w') as file:
         json.dump(my_drones, file)
-    
+
     os.system('cd examples/example-containers && ./build.sh')
 
 
@@ -46,8 +47,15 @@ def create_txt_drones(number_of_drones):
         for i in range(number_of_drones):
             my_ip = '10.0.0.1' + str(i)
             file.write(my_ip + '\n')
-    
+
     os.system('cd examples/example-containers && ./build.sh')
+
+
+def verify_consensus_algorithm(consensus: str):
+    if consensus not in consensus_algorithms:
+        print("Invalid consensus algorithm. choose between:")
+        print(*consensus_algorithms)
+        quit()
 
 
 def setup_network(net: Containernet, *argv):
@@ -111,13 +119,14 @@ def set_rest_location(
 
 
 def initialize_sawtooth(should_open_terminal=False, wait_time_in_seconds: int = 0,
-                        keep_terminal_alive=False, *args):
+                        keep_terminal_alive=False, consensus_algorithm="poet", *args):
+    verify_consensus_algorithm(consensus_algorithm)
     for node in args:
         start_validator(node, should_open_terminal,
-                        wait_time_in_seconds, keep_terminal_alive, False)
+                        wait_time_in_seconds, keep_terminal_alive, consensus_algorithm=consensus_algorithm, is_parameterized=False)
         start_rest_api(node, should_open_terminal=False)
-        start_transaction_processors( node,
-            should_open_terminal=False)
+        start_transaction_processors(node,
+                                     should_open_terminal=False)
         start_consensus_mechanism(node, should_open_terminal=False)
 
 
@@ -128,7 +137,7 @@ def initialize_parameterized_sawtooth(should_open_terminal=False,
     for node in args:
         start_validator(node, should_open_terminal, wait_time_in_seconds, keep_terminal_alive, True)
         start_rest_api(node, should_open_terminal=False)
-        start_transaction_processors( node, should_open_terminal=False)
+        start_transaction_processors(node, should_open_terminal=False)
         start_consensus_mechanism(node, should_open_terminal=False)
 
 
@@ -136,6 +145,7 @@ def start_validator(node: any,
                     should_open_terminal: bool = False,
                     wait_time_in_seconds: int = 2,
                     keep_terminal_alive=False,
+                    consensus_algorithm="poet",
                     is_parameterized=False):
     """Start the Validator
 
@@ -144,14 +154,17 @@ def start_validator(node: any,
         should_open_terminal (bool, optional): If True, opens a new terminal. Defaults to False.
         wait_time_in_seconds (int, optional): Wait time in seconds before leaving the command
         keep_terminal_alive (bool, optional): Leave the terminal open if it fails
+        consensus_algorithm (string, optional): Consensus algorithm
+        is_parameterized (bool, optional): If true, runs customized topology
     """
+    verify_consensus_algorithm(consensus_algorithm)
     station_name = str(node.name)
     if is_parameterized and str(station_name) == "base1":
-        command = 'bash /sawtooth_scripts/validator_poet_parametrized.sh base1'
+        command = 'bash /sawtooth_scripts/validator_{}_parametrized.sh base1'.format(consensus_algorithm)
     elif is_parameterized and station_name.startswith('drone'):
-        command = 'bash /sawtooth_scripts/validator_poet_parametrized.sh drone'
+        command = 'bash /sawtooth_scripts/validator_{}_parametrized.sh drone'.format(consensus_algorithm)
     else:
-        command = 'bash /sawtooth_scripts/validator_poet.sh ' + station_name
+        command = 'bash /sawtooth_scripts/validator_{}.sh {}'.format(consensus_algorithm, station_name)
 
     info(time_stamp() + '*** Generating sawtooth keypair for ' + station_name + ' ***\n')
 
@@ -211,11 +224,11 @@ def start_transaction_processors(node: any,
     station_name = str(node.name)
     station_ip = str(node.params.get('ip'))
     command_settings_tp = 'sudo -u sawtooth settings-tp -v --connect tcp://' + \
-                        station_ip + ':4004'
+                          station_ip + ':4004'
     command_intkey_tp = 'sudo -u sawtooth intkey-tp-python -v --connect tcp://' + \
                         station_ip + ':4004'
     command_poet_validator_registry_tp = 'sudo -u sawtooth poet-validator-registry-tp -v --connect tcp://' + \
-                        station_ip + ':4004'
+                                         station_ip + ':4004'
 
     info(time_stamp() + '*** Start Transaction Processors for ' + station_name + ' ***\n')
 
@@ -226,14 +239,14 @@ def start_transaction_processors(node: any,
             command_poet_validator_registry_tp += cmd_keep_alive
 
         makeTerm(node=node, title=station_name +
-                                ' Settings Transaction Processor', cmd=command_settings_tp)
+                                  ' Settings Transaction Processor', cmd=command_settings_tp)
         time.sleep(wait_time_in_seconds)
         makeTerm(node=node, title=station_name +
-                                ' Intkey Transaction Processor', cmd=command_intkey_tp)
+                                  ' Intkey Transaction Processor', cmd=command_intkey_tp)
         time.sleep(wait_time_in_seconds)
         makeTerm(node=node, title=station_name +
-                                ' PoET Validator Registry Transaction Processor',
-                                cmd=command_poet_validator_registry_tp)
+                                  ' PoET Validator Registry Transaction Processor',
+                 cmd=command_poet_validator_registry_tp)
     else:
         node.cmd(command_settings_tp + ' &')
         time.sleep(wait_time_in_seconds)
@@ -256,7 +269,7 @@ def start_consensus_mechanism(node: any,
     station_name = str(node.name)
     station_ip = str(node.params.get('ip'))
     command = 'poet-engine -vv --connect tcp://localhost:5050 --component tcp://' + \
-                        station_ip + ':4004'
+              station_ip + ':4004'
 
     info(time_stamp() + '*** Start Consensus Engine for ' + station_name + ' ***\n')
 
@@ -264,15 +277,15 @@ def start_consensus_mechanism(node: any,
         if keep_terminal_alive:
             command += cmd_keep_alive
         makeTerm(node=node, title=station_name +
-                                ' Consensus Mechanism', cmd=command + cmd_keep_alive)
+                                  ' Consensus Mechanism', cmd=command + cmd_keep_alive)
     else:
         node.cmd(command + ' &')
 
 
 def set_sawtooth_location(station: any,
                           coordinate: dict,
-                          iterations:int = 10,
-                          interval:int = 10):
+                          iterations: int = 10,
+                          interval: int = 10):
     """Sets the coordinates to the destination of the FANET
 
     Args:
@@ -285,7 +298,6 @@ def set_sawtooth_location(station: any,
         station.cmd("intkey set " + str(coord_time_stamp()) + " " + str(coordinate['lat']) + str(coordinate['long']))
         time.sleep(interval)
         info(time_stamp() + " Iteration number " + str(number + 1) + " of " + str(iterations) + "\n")
-
 
 
 def get_sawtooth_destination(node: any) -> str:
@@ -302,17 +314,17 @@ def get_sawtooth_destination(node: any) -> str:
     return node.cmd("cat /data/locations.log")
 
 
-def is_simulation_successful(expected_coord, coordinates) -> bool: 
-    
+def is_simulation_successful(expected_coord, coordinates) -> bool:
+    global expected_result
     for result in coordinates:
         expected_result = expected_coord in result
-        if expected_result == False:
+        if not expected_result:
             return expected_result
-    
+
     return expected_result
 
 
-def validate_scenario(net, expected_coord, coordinates) -> bool:
+def validate_scenario(net, expected_coord, coordinates):
     for coord in coordinates:
         info('Node coordinates: \n' + str(coord) + '\n')
     if is_simulation_successful(expected_coord, coordinates):
@@ -326,7 +338,7 @@ def validate_scenario(net, expected_coord, coordinates) -> bool:
 
 def save_logs_to_results(preffix_name: str = 'sim'):
     os.system('chown -R $USER:$USER /tmp/drone* /tmp/base*')
-    os.system('zip -r results/'+ preffix_name + str(coord_time_stamp) +'.zip /tmp/drone* tmp/base*')
+    os.system('zip -r results/' + preffix_name + str(coord_time_stamp) + '.zip /tmp/drone* tmp/base*')
 
 
 def kill_process():
