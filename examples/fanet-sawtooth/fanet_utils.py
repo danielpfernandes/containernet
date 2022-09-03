@@ -147,11 +147,11 @@ def start_validator(node: any,
     """
     station_name = str(node.name)
     if is_parameterized and str(station_name) == "base1":
-        command = 'bash /sawtooth_scripts/validator_parametrized.sh base1'
+        command = 'bash /sawtooth_scripts/validator_poet_parametrized.sh base1'
     elif is_parameterized and station_name.startswith('drone'):
-        command = 'bash /sawtooth_scripts/validator_parametrized.sh drone'
+        command = 'bash /sawtooth_scripts/validator_poet_parametrized.sh drone'
     else:
-        command = 'bash /sawtooth_scripts/validator.sh ' + station_name
+        command = 'bash /sawtooth_scripts/validator_poet.sh ' + station_name
 
     info(time_stamp() + '*** Generating sawtooth keypair for ' + station_name + ' ***\n')
 

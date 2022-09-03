@@ -101,12 +101,12 @@ def run_unprotected_scenario(option: int):
 def run_sawtooth_scenario(option: int):
     os.system("clear")
     if option == 1:
-        os.system("sudo python examples/fanet-sawtooth/fanet_simulation_wifi_sawtooth.py")
+        os.system("sudo python examples/fanet-sawtooth/fanet_simulation_wifi_sawtooth_poet.py")
         pause()
     elif option == 2:
         number_of_drones = validate_number_of_drones(3)
         iterations, interval = get_iterations_and_interval()
-        os.system("sudo python examples/fanet-sawtooth/fanet_simulation_wifi_sawtooth_parameterized.py " 
+        os.system("sudo python examples/fanet-sawtooth/fanet_simulation_wifi_sawtooth_poet_parameterized.py "
         + str(number_of_drones) + " "
         + str(iterations) + " "
         + str(interval))
