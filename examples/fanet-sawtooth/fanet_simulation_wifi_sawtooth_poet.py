@@ -18,6 +18,8 @@ from fanet_utils import get_sawtooth_destination, initialize_sawtooth, save_logs
     kill_containers, \
     kill_process, set_sawtooth_location, set_rest_location, setup_network, time_stamp
 
+CONSENSUS_ALGORITHM = "poet"
+
 
 def simulate(iterations_count: int = 5,
              wait_time_in_seconds: int = 5,
@@ -125,10 +127,10 @@ def simulate(iterations_count: int = 5,
     setup_network(net, bs1, d1, d2, d3, d4, d5)
 
     info(time_stamp() + '*** Starting Sawtooth on the Base Station ***\n')
-    initialize_sawtooth(should_open_xterm, 0, should_open_xterm, "poet", bs1)
+    initialize_sawtooth(should_open_xterm, 0, should_open_xterm, CONSENSUS_ALGORITHM, bs1)
 
     info(time_stamp() + '*** Starting Sawtooth on the Drones ***\n')
-    initialize_sawtooth(should_open_xterm, 0, should_open_xterm, "poet", d1, d2, d3, d4)
+    initialize_sawtooth(should_open_xterm, 0, should_open_xterm, CONSENSUS_ALGORITHM, d1, d2, d3, d4)
 
     if not skip_cli_simulation:
         info(time_stamp() + '*** Start drone terminals\n')

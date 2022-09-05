@@ -10,8 +10,8 @@ doc/html
 doc/latex
 trunk
 mnexec
-mininet-wifi
-openflow
+mininet-wifi/*
+openflow/*
 .vagrant/
 .cache/
 .idea

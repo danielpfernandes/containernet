@@ -123,11 +123,13 @@ def initialize_sawtooth(should_open_terminal=False, wait_time_in_seconds: int = 
     verify_consensus_algorithm(consensus_algorithm)
     for node in args:
         start_validator(node, should_open_terminal,
-                        wait_time_in_seconds, keep_terminal_alive, consensus_algorithm=consensus_algorithm, is_parameterized=False)
+                        wait_time_in_seconds, keep_terminal_alive, consensus_algorithm=consensus_algorithm,
+                        is_parameterized=False)
         start_rest_api(node, should_open_terminal=False)
-        start_transaction_processors(node,
+        start_transaction_processors(node, consensus_algorithm,
                                      should_open_terminal=False)
-        start_consensus_mechanism(node, should_open_terminal=False)
+        start_consensus_mechanism(node, consensus_algorithm,
+                                  should_open_terminal=False)
 
 
 def initialize_parameterized_sawtooth(should_open_terminal=False,
@@ -208,6 +210,7 @@ def start_rest_api(node: any,
 
 
 def start_transaction_processors(node: any,
+                                 consensus_algorithm: str = "poet",
                                  should_open_terminal: bool = False,
                                  wait_time_in_seconds: int = 0,
                                  keep_terminal_alive=False):
@@ -215,6 +218,7 @@ def start_transaction_processors(node: any,
 
     Args:
         node (any): Mininet node
+        consensus_algorithm (str, optional): Consensus algorithm
         should_open_terminal (bool, optional):
             If True, opens a new terminal for each processor. Defaults to False.
         wait_time_in_seconds (int, optional): Wait time in seconds before leaving the command
@@ -227,8 +231,9 @@ def start_transaction_processors(node: any,
                           station_ip + ':4004'
     command_intkey_tp = 'sudo -u sawtooth intkey-tp-python -v --connect tcp://' + \
                         station_ip + ':4004'
-    command_poet_validator_registry_tp = 'sudo -u sawtooth poet-validator-registry-tp -v --connect tcp://' + \
-                                         station_ip + ':4004'
+    if consensus_algorithm == "poet":
+        command_poet_validator_registry_tp = 'sudo -u sawtooth poet-validator-registry-tp -v --connect tcp://' + \
+                                            station_ip + ':4004'
 
     info(time_stamp() + '*** Start Transaction Processors for ' + station_name + ' ***\n')
 
@@ -236,39 +241,44 @@ def start_transaction_processors(node: any,
         if keep_terminal_alive:
             command_settings_tp += cmd_keep_alive
             command_intkey_tp += cmd_keep_alive
-            command_poet_validator_registry_tp += cmd_keep_alive
+            if consensus_algorithm == "poet":
+                command_poet_validator_registry_tp += cmd_keep_alive
 
         makeTerm(node=node, title=station_name +
-                                  ' Settings Transaction Processor', cmd=command_settings_tp)
+                 ' Settings Transaction Processor', cmd=command_settings_tp)
         time.sleep(wait_time_in_seconds)
         makeTerm(node=node, title=station_name +
-                                  ' Intkey Transaction Processor', cmd=command_intkey_tp)
+                 ' Intkey Transaction Processor', cmd=command_intkey_tp)
         time.sleep(wait_time_in_seconds)
-        makeTerm(node=node, title=station_name +
-                                  ' PoET Validator Registry Transaction Processor',
-                 cmd=command_poet_validator_registry_tp)
+        if consensus_algorithm == "poet":
+            makeTerm(node=node, title=station_name +
+                     ' PoET Validator Registry Transaction Processor',
+                     cmd=command_poet_validator_registry_tp)
     else:
         node.cmd(command_settings_tp + ' &')
         time.sleep(wait_time_in_seconds)
         node.cmd(command_intkey_tp + ' &')
         time.sleep(wait_time_in_seconds)
-        node.cmd(command_poet_validator_registry_tp + ' &')
+        if consensus_algorithm == "poet":
+            node.cmd(command_poet_validator_registry_tp + ' &')
 
 
 def start_consensus_mechanism(node: any,
+                              consensus_algorithm: str = "poet",
                               should_open_terminal: bool = False,
                               keep_terminal_alive=False):
     """Start the consensus engine
 
     Args:
         node (any): Mininet node
+        consensus_algorithm (str, optional): Consensus algorithm
         should_open_terminal (bool, optional): If True, opens a new terminal. Defaults to False.
         keep_terminal_alive (bool, optional): Leave the terminal open if it fails
     """
 
     station_name = str(node.name)
     station_ip = str(node.params.get('ip'))
-    command = 'poet-engine -vv --connect tcp://localhost:5050 --component tcp://' + \
+    command = '{}-engine -vv --connect tcp://localhost:5050 --component tcp://'.format(consensus_algorithm) + \
               station_ip + ':4004'
 
     info(time_stamp() + '*** Start Consensus Engine for ' + station_name + ' ***\n')
@@ -277,7 +287,7 @@ def start_consensus_mechanism(node: any,
         if keep_terminal_alive:
             command += cmd_keep_alive
         makeTerm(node=node, title=station_name +
-                                  ' Consensus Mechanism', cmd=command + cmd_keep_alive)
+                 ' Consensus Mechanism', cmd=command + cmd_keep_alive)
     else:
         node.cmd(command + ' &')
 
@@ -315,13 +325,10 @@ def get_sawtooth_destination(node: any) -> str:
 
 
 def is_simulation_successful(expected_coord, coordinates) -> bool:
-    global expected_result
     for result in coordinates:
-        expected_result = expected_coord in result
-        if not expected_result:
-            return expected_result
-
-    return expected_result
+        if expected_coord not in result:
+            return False
+    return True
 
 
 def validate_scenario(net, expected_coord, coordinates):

@@ -18,6 +18,8 @@ from fanet_utils import get_sawtooth_destination, initialize_sawtooth, save_logs
     kill_containers, \
     kill_process, set_sawtooth_location, set_rest_location, setup_network, time_stamp
 
+CONSENSUS_ALGORITHM = "pbft"
+
 
 def simulate(iterations_count: int = 5,
              wait_time_in_seconds: int = 5,
@@ -123,7 +125,7 @@ def simulate(iterations_count: int = 5,
                         position='20,60,10')
 
     # Jetson Nano ARM Cortex-A57 3 GB LPDDR4
-    d6 = net.addStation('drone5',
+    d6 = net.addStation('drone6',
                         ip='10.0.0.254',
                         mac='00:00:00:00:00:05',
                         cls=DockerSta,
@@ -137,7 +139,7 @@ def simulate(iterations_count: int = 5,
                         position='20,60,10')
 
     # Jetson Nano ARM Cortex-A57 3 GB LPDDR4
-    d7 = net.addStation('drone5',
+    d7 = net.addStation('drone7',
                         ip='10.0.0.255',
                         mac='00:00:00:00:00:05',
                         cls=DockerSta,
@@ -153,10 +155,10 @@ def simulate(iterations_count: int = 5,
     setup_network(net, bs1, d1, d2, d3, d4, d5, d6, d7)
 
     info(time_stamp() + '*** Starting Sawtooth on the Base Station ***\n')
-    initialize_sawtooth(should_open_xterm, 0, should_open_xterm, bs1)
+    initialize_sawtooth(should_open_xterm, 0, should_open_xterm, CONSENSUS_ALGORITHM, bs1)
 
     info(time_stamp() + '*** Starting Sawtooth on the Drones ***\n')
-    initialize_sawtooth(should_open_xterm, 0, should_open_xterm, "pbft", d1, d2, d3, d4, d5, d6, d7)
+    initialize_sawtooth(should_open_xterm, 0, should_open_xterm, CONSENSUS_ALGORITHM, d1, d2, d3, d4, d5, d6, d7)
 
     if not skip_cli_simulation:
         info(time_stamp() + '*** Start drone terminals\n')

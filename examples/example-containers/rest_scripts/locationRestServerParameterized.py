@@ -48,7 +48,7 @@ def extract_ip():
         # Points to the base station to get the host IP
         st.connect((BASE_STATION_IP, 5000))
         ip = st.getsockname()[0]
-    except Exception:
+    except ConnectionError:
         print('Could not get the iface address. Using localhost as default')
         ip = LOCALHOST_IP
     finally:
@@ -169,7 +169,7 @@ def propagate_locations():
             return 'Propagation failed', 500
 
     # If the connection with the base station is lost, show must go on :)
-    except:
+    except ConnectionError:
         error_message = 'Connection with the base station failed. '
         warning_message = '!!!!!!!!!!!!!!!! PROPAGATING INFORMATION WITHOUT VALIDATION !!!!!!!!!!!!!!'
         logging.error(error_message)
