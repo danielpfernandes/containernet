@@ -4,7 +4,6 @@ import logging
 import socket
 import subprocess
 from datetime import datetime
-from typing import IO
 
 import pandas as pd
 import requests

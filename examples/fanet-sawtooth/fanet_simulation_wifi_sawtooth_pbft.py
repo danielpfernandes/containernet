@@ -50,7 +50,7 @@ def simulate(iterations_count: int = 5,
                          dimage=docker_image,
                          ports=ports,
                          port_bindings={88: 8008, 8008: 88},
-                         volumes=["/tmp/base1/data:/data"])
+                         volumes=["/tmp/base1/data:/data", "/tmp/pbft-shared:/pbft-shared"])
 
     info(time_stamp() + '*** Adding docker drones\n')
 
@@ -61,7 +61,7 @@ def simulate(iterations_count: int = 5,
                         cls=DockerSta,
                         dimage=docker_image,
                         ports=ports,
-                        volumes=["/tmp/drone1/data:/data"],
+                        volumes=["/tmp/drone1/data:/data", "/tmp/pbft-shared:/pbft-shared"],
                         mem_limit=3900182016,
                         cpu_shares=5,
                         cpu_period=50000,
@@ -75,7 +75,7 @@ def simulate(iterations_count: int = 5,
                         cls=DockerSta,
                         dimage=docker_image,
                         ports=ports,
-                        volumes=["/tmp/drone2/data:/data"],
+                        volumes=["/tmp/drone2/data:/data", "/tmp/pbft-shared:/pbft-shared"],
                         mem_limit=958182016,
                         cpu_shares=2,
                         cpu_period=50000,
@@ -89,7 +89,7 @@ def simulate(iterations_count: int = 5,
                         cls=DockerSta,
                         dimage=docker_image,
                         ports=ports,
-                        volumes=["/tmp/drone3/data:/data"],
+                        volumes=["/tmp/drone3/data:/data", "/tmp/pbft-shared:/pbft-shared"],
                         mem_limit=3900182016,
                         cpu_shares=5,
                         cpu_period=50000,
@@ -103,7 +103,7 @@ def simulate(iterations_count: int = 5,
                         cls=DockerSta,
                         dimage=docker_image,
                         ports=ports,
-                        volumes=["/tmp/drone4/data:/data"],
+                        volumes=["/tmp/drone4/data:/data", "/tmp/pbft-shared:/pbft-shared"],
                         mem_limit=1900182016,
                         cpu_shares=5,
                         cpu_period=50000,
@@ -117,7 +117,7 @@ def simulate(iterations_count: int = 5,
                         cls=DockerSta,
                         dimage=docker_image,
                         ports=ports,
-                        volumes=["/tmp/drone5/data:/data"],
+                        volumes=["/tmp/drone5/data:/data", "/tmp/pbft-shared:/pbft-shared"],
                         mem_limit=3900182016,
                         cpu_shares=10,
                         cpu_period=50000,
@@ -131,7 +131,7 @@ def simulate(iterations_count: int = 5,
                         cls=DockerSta,
                         dimage=docker_image,
                         ports=ports,
-                        volumes=["/tmp/drone5/data:/data"],
+                        volumes=["/tmp/drone6/data:/data", "/tmp/pbft-shared:/pbft-shared"],
                         mem_limit=3900182016,
                         cpu_shares=10,
                         cpu_period=50000,
@@ -145,7 +145,7 @@ def simulate(iterations_count: int = 5,
                         cls=DockerSta,
                         dimage=docker_image,
                         ports=ports,
-                        volumes=["/tmp/drone5/data:/data"],
+                        volumes=["/tmp/drone7/data:/data"],
                         mem_limit=3900182016,
                         cpu_shares=10,
                         cpu_period=50000,
@@ -158,7 +158,7 @@ def simulate(iterations_count: int = 5,
     initialize_sawtooth(should_open_xterm, 0, should_open_xterm, CONSENSUS_ALGORITHM, bs1)
 
     info(time_stamp() + '*** Starting Sawtooth on the Drones ***\n')
-    initialize_sawtooth(should_open_xterm, 0, should_open_xterm, CONSENSUS_ALGORITHM, d1, d2, d3, d4, d5, d6, d7)
+    initialize_sawtooth(should_open_xterm, 0, should_open_xterm, CONSENSUS_ALGORITHM, d1, d2, d3, d4, d5, d6)
 
     if not skip_cli_simulation:
         info(time_stamp() + '*** Start drone terminals\n')
@@ -167,6 +167,9 @@ def simulate(iterations_count: int = 5,
         makeTerm(d2, cmd="bash")
         makeTerm(d3, cmd="bash")
         makeTerm(d4, cmd="bash")
+        makeTerm(d5, cmd="bash")
+        makeTerm(d6, cmd="bash")
+        makeTerm(d7, cmd="bash")
 
     info(time_stamp() + '*** Waiting until the the Sawtooth peer connection\n')
     time.sleep(60)

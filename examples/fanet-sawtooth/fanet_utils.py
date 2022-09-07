@@ -321,7 +321,7 @@ def get_sawtooth_destination(node: any) -> str:
     """
     node.cmd("sh /sawtooth_scripts/get_destination.sh")
 
-    return node.cmd("cat /data/locations.log")
+    return node.cmd("cat /data/sawtooth/locations.log")
 
 
 def is_simulation_successful(expected_coord, coordinates) -> bool:
