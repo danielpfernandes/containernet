@@ -43,8 +43,8 @@ def unprotected_scenarios_menu():
 
 def sawtooth_scenarios_menu(algorithm="poet"):
     os.system("clear")
-    print("########## Secured (Hyperledger Sawtooth-based) FANET Communication ##########")
-    print("[1] Run default test case (5 preconfigured drones)")
+    print("########## Secured (Hyperledger Sawtooth-based {}) FANET Communication ##########".format(algorithm))
+    print("[1] Run default test case (preconfigured drones)")
     print("[2] Run custom test case")
     print("[3] Return to main menu")
     option = get_option()

@@ -22,12 +22,12 @@ DRONE5_IP='10.0.0.253'
 DRONE6_IP='10.0.0.254'
 
 case $1 in
-base1)  IP=$BASE1_IP  VALIDATOR='0' PEERS="tcp://${DRONE1_IP}:8800,tcp://${DRONE2_IP}:8800,tcp://${DRONE3_IP},tcp://${DRONE4_IP}:8800,tcp://${DRONE5_IP}:8800,tcp://${DRONE6_IP}:8800";;
-drone1) IP=$DRONE1_IP VALIDATOR='1' PEERS="tcp://${BASE1_IP}:8800,tcp://${DRONE2_IP}:8800,tcp://${DRONE3_IP},tcp://${DRONE4_IP}:8800,tcp://${DRONE5_IP}:8800,tcp://${DRONE6_IP}:8800";;
-drone2) IP=$DRONE2_IP VALIDATOR='2' PEERS="tcp://${BASE1_IP}:8800,tcp://${DRONE1_IP}:8800,tcp://${DRONE3_IP},tcp://${DRONE4_IP}:8800,tcp://${DRONE5_IP}:8800,tcp://${DRONE6_IP}:8800";;
-drone3) IP=$DRONE3_IP VALIDATOR='3' PEERS="tcp://${BASE1_IP}:8800,tcp://${DRONE1_IP}:8800,tcp://${DRONE2_IP},tcp://${DRONE4_IP}:8800,tcp://${DRONE5_IP}:8800,tcp://${DRONE6_IP}:8800";;
-drone4) IP=$DRONE4_IP VALIDATOR='4' PEERS="tcp://${BASE1_IP}:8800,tcp://${DRONE1_IP}:8800,tcp://${DRONE2_IP},tcp://${DRONE3_IP}:8800,tcp://${DRONE5_IP}:8800,tcp://${DRONE6_IP}:8800";;
-drone5) IP=$DRONE5_IP VALIDATOR='5' PEERS="tcp://${BASE1_IP}:8800,tcp://${DRONE1_IP}:8800,tcp://${DRONE2_IP},tcp://${DRONE3_IP}:8800,tcp://${DRONE4_IP}:8800,tcp://${DRONE6_IP}:8800";;
+base1)  IP=$BASE1_IP  VALIDATOR='0';; # PEERS="tcp://${DRONE1_IP}:8800,tcp://${DRONE2_IP}:8800,tcp://${DRONE3_IP},tcp://${DRONE4_IP}:8800,tcp://${DRONE5_IP}:8800,tcp://${DRONE6_IP}:8800";;
+drone1) IP=$DRONE1_IP VALIDATOR='1' PEERS="tcp://${BASE1_IP}:8800";; #,tcp://${DRONE2_IP}:8800,tcp://${DRONE3_IP},tcp://${DRONE4_IP}:8800,tcp://${DRONE5_IP}:8800,tcp://${DRONE6_IP}:8800";;
+drone2) IP=$DRONE2_IP VALIDATOR='2' PEERS="tcp://${BASE1_IP}:8800,tcp://${DRONE1_IP}:8800";; #,tcp://${DRONE3_IP},tcp://${DRONE4_IP}:8800,tcp://${DRONE5_IP}:8800,tcp://${DRONE6_IP}:8800";;
+drone3) IP=$DRONE3_IP VALIDATOR='3' PEERS="tcp://${BASE1_IP}:8800,tcp://${DRONE1_IP}:8800,tcp://${DRONE2_IP}";; #,tcp://${DRONE4_IP}:8800,tcp://${DRONE5_IP}:8800,tcp://${DRONE6_IP}:8800";;
+drone4) IP=$DRONE4_IP VALIDATOR='4' PEERS="tcp://${BASE1_IP}:8800,tcp://${DRONE1_IP}:8800,tcp://${DRONE2_IP},tcp://${DRONE3_IP}:8800";; #,tcp://${DRONE5_IP}:8800,tcp://${DRONE6_IP}:8800";;
+drone5) IP=$DRONE5_IP VALIDATOR='5' PEERS="tcp://${BASE1_IP}:8800,tcp://${DRONE1_IP}:8800,tcp://${DRONE2_IP},tcp://${DRONE3_IP}:8800,tcp://${DRONE4_IP}:8800";; #,tcp://${DRONE6_IP}:8800";;
 drone6) IP=$DRONE6_IP VALIDATOR='6' PEERS="tcp://${BASE1_IP}:8800,tcp://${DRONE1_IP}:8800,tcp://${DRONE2_IP},tcp://${DRONE3_IP}:8800,tcp://${DRONE4_IP}:8800,tcp://${DRONE5_IP}:8800";;
 *) echo "Invalid option";;
 esac
@@ -60,23 +60,32 @@ if [ $VALIDATOR = '0' ]; then
         sawtooth.consensus.algorithm.name=pbft \
         sawtooth.consensus.algorithm.version=1.0 \
         sawtooth.consensus.pbft.members="${PBFT_MEMBERS}" \
+        sawtooth.publisher.max_batches_per_block=1200 \
         -o /tmp/config.batch
     fi &&
     if [ ! -e /var/lib/sawtooth/genesis.batch ]; then
         sawadm genesis /tmp/config-genesis.batch /tmp/config.batch
     fi
-fi &&
-if [ ! -e /root/.sawtooth/keys/root.priv ]; then
-    sawtooth keygen root
-fi &&
-sawtooth-validator -vv \
+    sawtooth keygen root &&
+    sawtooth-validator -vv \
     --endpoint tcp://${IP}:8800 \
     --bind network:tcp://${IP}:8800 \
     --bind component:tcp://${IP}:4004 \
-    --peers $PEERS
-#    --bind component:tcp://127.0.0.1:4004 \
-#    --bind consensus:tcp://127.0.0.1:5050 \
-#    --bind network:tcp://127.0.0.1:8800 \
-#    --scheduler parallel \
-#    --peering static \
-#    --maximum-peer-connectivity 10000 \
+    --peering static \
+    --scheduler parallel
+else
+  sawtooth keygen root &&
+  sawtooth-validator -vv \
+      --endpoint tcp://${IP}:8800 \
+      --bind network:tcp://${IP}:8800 \
+      --bind component:tcp://${IP}:4004 \
+      --peering static \
+      --scheduler parallel \
+      --peers $PEERS \
+  #    --bind component:tcp://127.0.0.1:4004 \
+  #    --bind consensus:tcp://127.0.0.1:5050 \
+  #    --bind network:tcp://127.0.0.1:8800 \
+  #    --scheduler parallel \
+  #    --peering static \
+  #    --maximum-peer-connectivity 10000 \
+fi

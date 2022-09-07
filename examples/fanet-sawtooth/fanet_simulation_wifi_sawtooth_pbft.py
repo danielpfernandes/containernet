@@ -187,6 +187,8 @@ def simulate(iterations_count: int = 5,
     expected_sc07 = '50021002'
     expected_sc09 = '50021004'
 
+    CLI(net)
+
     # -------------------------------------- SCENARIO 06 -------------------------------------- #
     info(time_stamp() + "*** Scenario 6: BS1 sends the new coordinates and the Sawtooth"
                         " network validates the update of the information\n")

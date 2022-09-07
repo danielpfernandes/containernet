@@ -231,6 +231,7 @@ def start_transaction_processors(node: any,
                           station_ip + ':4004'
     command_intkey_tp = 'sudo -u sawtooth intkey-tp-python -v --connect tcp://' + \
                         station_ip + ':4004'
+    command_poet_validator_registry_tp = ""
     if consensus_algorithm == "poet":
         command_poet_validator_registry_tp = 'sudo -u sawtooth poet-validator-registry-tp -v --connect tcp://' + \
                                             station_ip + ':4004'
@@ -335,7 +336,7 @@ def validate_scenario(net, expected_coord, coordinates):
     for coord in coordinates:
         info('Node coordinates: \n' + str(coord) + '\n')
     if is_simulation_successful(expected_coord, coordinates):
-        info(time_stamp() + " ******************** SIMULATION SUCCESSFULL! ********************\n")
+        info(time_stamp() + " ******************** SIMULATION SUCCESSFUL! ********************\n")
     else:
         info(time_stamp() + " ******************** SIMULATION FAILED! ********************\n")
         kill_process()
@@ -343,9 +344,9 @@ def validate_scenario(net, expected_coord, coordinates):
         sys.exit(1)
 
 
-def save_logs_to_results(preffix_name: str = 'sim'):
+def save_logs_to_results(prefix_name: str = 'sim'):
     os.system('chown -R $USER:$USER /tmp/drone* /tmp/base*')
-    os.system('zip -r results/' + preffix_name + str(coord_time_stamp) + '.zip /tmp/drone* tmp/base*')
+    os.system('zip -r results/' + prefix_name + str(coord_time_stamp) + '.zip /tmp/drone* tmp/base*')
 
 
 def kill_process():
