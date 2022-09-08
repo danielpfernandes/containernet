@@ -29,6 +29,7 @@ RUN apt install sudo
 ARG IMAGE_VER=unknown
 RUN rm -rf /tmp && rm -rf /rest
 RUN mkdir /data
+RUN mkdir /data/sawtooth
 RUN mkdir /tmp
 RUN mkdir /poet-shared
 RUN mkdir /pbft-shared
