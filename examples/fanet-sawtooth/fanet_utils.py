@@ -87,15 +87,15 @@ def setup_network(net: Containernet, *argv):
     net.socketServer(ip='127.0.0.1', port=12345)
 
     # info("*** Starting CoppeliaSim\n")
-    path = os.path.dirname(os.path.abspath(__file__))
+    # path = os.path.dirname(os.path.abspath(__file__))
     # os.system('{}/CoppeliaSim_Edu_V4_1_0_Ubuntu/coppeliaSim.sh -s {}'
     #             '/simulation.ttt -gGUIITEMS_2 &'.format(path, path))
     # time.sleep(10)
 
-    info("\n*** Perform a simple test\n")
-    simple_test = 'python {}/simpleTest.py '.format(
-        path) + sta_drone_send + ' &'
-    os.system(simple_test)
+    # info("\n*** Perform a simple test\n")
+    # simple_test = 'python {}/simpleTest.py '.format(
+    #     path) + sta_drone_send + ' &'
+    # os.system(simple_test)
 
 
 def set_rest_location(

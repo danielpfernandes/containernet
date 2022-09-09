@@ -110,10 +110,8 @@ def run_sawtooth_scenario(algorithm: str, option: int):
         number_of_drones = validate_number_of_drones(3)
         iterations, interval = get_iterations_and_interval()
         os.system(
-            "sudo python examples/fanet-sawtooth/fanet_simulation_wifi_sawtooth_{}_parameterized.py ".format(algorithm)
-            + str(number_of_drones) + " "
-            + str(iterations) + " "
-            + str(interval))
+            "sudo python examples/fanet-sawtooth/fanet_simulation_wifi_sawtooth_{}_parameterized.py {} {} {}"
+            .format(algorithm, number_of_drones, iterations, interval))
         pause()
 
 

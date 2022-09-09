@@ -186,7 +186,7 @@ if __name__ == '__main__':
     kill_process()
     kill_containers()
 
-    if len(sys.argv) == 3 and str(sys.argv[0]) != "sudo":
+    if len(sys.argv) == 4:
         skip_cli = True
         print('number of drones: ' + sys.argv[1])
         print('iterations: ' + sys.argv[2])
