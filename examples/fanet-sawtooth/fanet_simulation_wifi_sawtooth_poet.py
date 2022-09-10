@@ -173,7 +173,7 @@ def simulate(iterations_count: int = 5,
     # -------------------------------------- SCENARIO 08 -------------------------------------- #
     info(time_stamp() + "*** Scenario 8: A  Drone 5 is compromised and tries to change the destination coordinates"
                         "using the unprotected REST Interface\n")
-    info(time_stamp() + "*** Scenario 3 Expected: Coordinates keep to 50021002102 (Exploited if set to 50301030303)\n")
+    info(time_stamp() + "*** Scenario 8 Expected: Coordinates keep to 50021002102 (Exploited if set to 50301030303)\n")
     set_rest_location(d5, iterations_count, wait_time_in_seconds, target='10.0.0.249', coordinates=sc08_coords)
     validate_scenario(net, expected_sc07, get_destinations(d1, d2, d3, d4))
 
@@ -188,7 +188,7 @@ def simulate(iterations_count: int = 5,
     # -------------------------------------- SCENARIO 10 -------------------------------------- #
     info(time_stamp() + "*** Scenario 10:  compromised base station joins the network tries to change the destination"
                         " coordinates through the unsecure REST interface\n")
-    info(time_stamp() + "*** Scenario 3 Expected: Coordinates keep to 50041004104 (Exploited if set to 50501050505)\n")
+    info(time_stamp() + "*** Scenario 10 Expected: Coordinates keep to 50041004104 (Exploited if set to 50501050505)\n")
     bs2 = start_bs2_station(net)
     if not skip_cli_simulation:
         makeTerm(bs2, cmd="bash")

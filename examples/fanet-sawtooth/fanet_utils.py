@@ -87,15 +87,15 @@ def setup_network(net: Containernet, *argv):
     net.socketServer(ip='127.0.0.1', port=12345)
 
     # info("*** Starting CoppeliaSim\n")
-    # path = os.path.dirname(os.path.abspath(__file__))
+    path = os.path.dirname(os.path.abspath(__file__))
     # os.system('{}/CoppeliaSim_Edu_V4_1_0_Ubuntu/coppeliaSim.sh -s {}'
     #             '/simulation.ttt -gGUIITEMS_2 &'.format(path, path))
     # time.sleep(10)
 
-    # info("\n*** Perform a simple test\n")
-    # simple_test = 'python {}/simpleTest.py '.format(
-    #     path) + sta_drone_send + ' &'
-    # os.system(simple_test)
+    info("\n*** Perform a simple test\n")
+    simple_test = 'python {}/simpleTest.py '.format(
+         path) + sta_drone_send + ' &'
+    os.system(simple_test)
 
 
 def set_rest_location(
@@ -118,29 +118,38 @@ def set_rest_location(
         info(time_stamp() + " Iteration number " + str(number + 1) + " of " + str(iterations) + "\n")
 
 
-def initialize_sawtooth(should_open_terminal=False, wait_time_in_seconds: int = 0,
-                        keep_terminal_alive=False, consensus_algorithm="poet", *args):
+def initialize_sawtooth(should_open_terminal=False,
+                        wait_time_in_seconds: int = 0,
+                        keep_terminal_alive=False,
+                        consensus_algorithm="poet",
+                        *args):
     verify_consensus_algorithm(consensus_algorithm)
     for node in args:
         start_validator(node, should_open_terminal,
-                        wait_time_in_seconds, keep_terminal_alive, consensus_algorithm=consensus_algorithm,
+                        wait_time_in_seconds,
+                        keep_terminal_alive,
+                        consensus_algorithm=consensus_algorithm,
                         is_parameterized=False)
         start_rest_api(node, should_open_terminal=False)
-        start_transaction_processors(node, consensus_algorithm,
-                                     should_open_terminal=False)
-        start_consensus_mechanism(node, consensus_algorithm,
-                                  should_open_terminal=False)
+        start_transaction_processors(node, consensus_algorithm, should_open_terminal=False)
+        start_consensus_mechanism(node, consensus_algorithm, should_open_terminal=False)
 
 
 def initialize_parameterized_sawtooth(should_open_terminal=False,
                                       wait_time_in_seconds: int = 0,
                                       keep_terminal_alive=False,
+                                      consensus_algorithm="poet",
                                       *args):
     for node in args:
-        start_validator(node, should_open_terminal, wait_time_in_seconds, keep_terminal_alive, True)
+        start_validator(node,
+                        should_open_terminal,
+                        wait_time_in_seconds,
+                        keep_terminal_alive,
+                        consensus_algorithm,
+                        is_parameterized=True)
         start_rest_api(node, should_open_terminal=False)
-        start_transaction_processors(node, should_open_terminal=False)
-        start_consensus_mechanism(node, should_open_terminal=False)
+        start_transaction_processors(node, consensus_algorithm, should_open_terminal=False)
+        start_consensus_mechanism(node, consensus_algorithm, should_open_terminal=False)
 
 
 def start_validator(node: any,
