@@ -1,45 +1,15 @@
 import os
 import sys
 import time
-import json
 
-from datetime import datetime
 from mininet.log import info
-from mn_wifi.link import adhoc
 
-from containernet.net import Containernet
 from containernet.term import makeTerm
+from .utils import time_stamp, kill_process, coord_time_stamp
 
 cmd_keep_alive = '; bash'
 
 consensus_algorithms = ["pbft", "poet"]
-
-
-def time_stamp() -> str:
-    return str(datetime.now().strftime('%Y-%m-%dT%H:%M:%S.%s'))
-
-
-def coord_time_stamp() -> str:
-    return str(datetime.now().strftime('%Y-%m-%dT%H-%M-%S'))
-
-
-def add_link(net: Containernet, node: any):
-    net.addLink(node, cls=adhoc, intf=str(node.name) + '-wlan0',
-                ssid='adhocNet', proto='batman_adv',
-                mode='g', channel=5, ht_cap='HT40+')
-
-
-def create_json_drones(number_of_drones):
-    my_drones = []
-    for i in range(number_of_drones):
-        name = 'drone' + str(i)
-        my_ip = '10.0.0.1' + str(i)
-        my_drones.append({'id': name, 'address': my_ip})
-
-    with open('examples/example-containers/rest_scripts/parametrized_drones.json', 'w') as file:
-        json.dump(my_drones, file)
-
-    os.system('cd examples/example-containers && ./build.sh')
 
 
 def create_txt_drones(number_of_drones):
@@ -56,66 +26,6 @@ def verify_consensus_algorithm(consensus: str):
         print("Invalid consensus algorithm. choose between:")
         print(*consensus_algorithms)
         quit()
-
-
-def setup_network(net: Containernet, *argv):
-    net.setPropagationModel(model="logDistance", exp=4.5)
-
-    info("\n*** Configuring wifi nodes\n")
-
-    net.configureWifiNodes()
-
-    for node in argv:
-        add_link(net, node)
-
-    info(time_stamp() + '*** Starting network\n')
-    net.build()
-    net.start()
-
-    # nodes = net.stations
-    # telemetry(nodes=nodes, single=True, data_type='position')
-
-    sta_drone = []
-    for n in net.stations:
-        sta_drone.append(n.name)
-    sta_drone_send = ' '.join(map(str, sta_drone))
-
-    # # set_socket_ip: localhost must be replaced by ip address
-    # # of the network interface of your system
-    # # The same must be done with socket_client.py
-    info(time_stamp() + '*** Starting Socket Server\n')
-    net.socketServer(ip='127.0.0.1', port=12345)
-
-    # info("*** Starting CoppeliaSim\n")
-    path = os.path.dirname(os.path.abspath(__file__))
-    # os.system('{}/CoppeliaSim_Edu_V4_1_0_Ubuntu/coppeliaSim.sh -s {}'
-    #             '/simulation.ttt -gGUIITEMS_2 &'.format(path, path))
-    # time.sleep(10)
-
-    info("\n*** Perform a simple test\n")
-    simple_test = 'python {}/simpleTest.py '.format(
-         path) + sta_drone_send + ' &'
-    os.system(simple_test)
-
-
-def set_rest_location(
-        station: any, iterations=10, interval=10, target='10.0.0.1', coordinates='0 0'):
-    """Set the drone location
-
-    Args:
-        station (any): Mininet node (source station)
-        iterations (int, optional): Numbers of iterations to run the command. Defaults to 10.
-        interval (int, optional): Interval in seconds between each iteration. Defaults to 10.
-        target (str, optional): Target node (drone). Defaults to '10.0.0.249'.
-        coordinates (str, optional):
-            Coordinates in format <latitude> <longitude>. Defaults to '0 0'.
-    """
-    for number in range(iterations):
-        station.cmd('python /rest/setLocation.py '
-                    + target + ' '
-                    + coordinates + ' True &')
-        time.sleep(interval)
-        info(time_stamp() + " Iteration number " + str(number + 1) + " of " + str(iterations) + "\n")
 
 
 def initialize_sawtooth(should_open_terminal=False,
@@ -243,7 +153,7 @@ def start_transaction_processors(node: any,
     command_poet_validator_registry_tp = ""
     if consensus_algorithm == "poet":
         command_poet_validator_registry_tp = 'sudo -u sawtooth poet-validator-registry-tp -v --connect tcp://' + \
-                                            station_ip + ':4004'
+                                             station_ip + ':4004'
 
     info(time_stamp() + '*** Start Transaction Processors for ' + station_name + ' ***\n')
 
@@ -254,15 +164,15 @@ def start_transaction_processors(node: any,
             if consensus_algorithm == "poet":
                 command_poet_validator_registry_tp += cmd_keep_alive
 
-        makeTerm(node=node, title=station_name +
-                 ' Settings Transaction Processor', cmd=command_settings_tp)
+        makeTerm(node=node,
+                 title=station_name + ' Settings Transaction Processor', cmd=command_settings_tp)
         time.sleep(wait_time_in_seconds)
-        makeTerm(node=node, title=station_name +
-                 ' Intkey Transaction Processor', cmd=command_intkey_tp)
+        makeTerm(node=node,
+                 title=station_name + ' Intkey Transaction Processor', cmd=command_intkey_tp)
         time.sleep(wait_time_in_seconds)
         if consensus_algorithm == "poet":
-            makeTerm(node=node, title=station_name +
-                     ' PoET Validator Registry Transaction Processor',
+            makeTerm(node=node,
+                     title=station_name + ' PoET Validator Registry Transaction Processor',
                      cmd=command_poet_validator_registry_tp)
     else:
         node.cmd(command_settings_tp + ' &')
@@ -296,8 +206,7 @@ def start_consensus_mechanism(node: any,
     if should_open_terminal:
         if keep_terminal_alive:
             command += cmd_keep_alive
-        makeTerm(node=node, title=station_name +
-                 ' Consensus Mechanism', cmd=command + cmd_keep_alive)
+        makeTerm(node=node, title=station_name + ' Consensus Mechanism', cmd=command + cmd_keep_alive)
     else:
         node.cmd(command + ' &')
 
@@ -315,14 +224,15 @@ def set_sawtooth_location(station: any,
         interval (int): Interval between iterations
     """
     for number in range(iterations):
-        station.cmd("intkey set " + str(coord_time_stamp()) + " " + str(coordinate['lat']) + str(coordinate['long']))
+        station.cmd(
+            "intkey set " + str(coord_time_stamp()) + " " + str(coordinate['lat']) + str(coordinate['long']))
         time.sleep(interval)
         info(time_stamp() + " Iteration number " + str(number + 1) + " of " + str(iterations) + "\n")
 
 
 def get_sawtooth_destination(node: any) -> str:
     """Get the coordinates stored in the node transactions
-    
+
     Args:
         node (any): Mininet node
 
@@ -353,24 +263,13 @@ def validate_scenario(net, expected_coord, coordinates):
         sys.exit(1)
 
 
-def save_logs_to_results(prefix_name: str = 'sim'):
-    os.system('chown -R $USER:$USER /tmp/drone* /tmp/base*')
-    os.system('zip -r results/' + prefix_name + str(coord_time_stamp) + '.zip /tmp/drone* tmp/base*')
+def save_sawtooth_logs(*args):
+    for node in args:
+        node.cmd('mkdir /data/sawtooth/ && cp /var/log/sawtooth/* /data/sawtooth/')
 
 
-def kill_process():
-    # os.system('pkill -9 -f coppeliaSim')
-    os.system('pkill -9 -f simpleTest.py')
-    os.system('pkill -9 -f setNodePosition.py')
-    os.system('rm -f examples/uav/data/*')
-
-
-def kill_containers():
-    os.system('rm -f examples/example-containers/rest_scripts/parametrized_drones.json')
-    os.system('rm -f examples/example-containers/sawtooth_scripts/drones.txt')
-    os.system('kill -TERM $(pgrep -f prometheus)')
-    os.system('rm -f examples/uav/data/*')
-    os.system('rm -rf /tmp/poet-shared')
-    os.system('docker container rm $(docker ps -a -q) --force')
-    os.system('service docker restart')
-    os.system('cd examples/example-containers && ./build.sh')
+def get_destinations(*args):
+    destinations = []
+    for drone in args:
+        destinations.append(get_sawtooth_destination(drone))
+    return destinations

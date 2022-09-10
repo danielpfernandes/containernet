@@ -1,6 +1,6 @@
 #!/usr/bin/python
 """
-This is the most simple example to showcase Containernet.
+This is the simplest example to showcase Containernet.
 """
 
 import subprocess
@@ -11,11 +11,12 @@ from mininet.cli import CLI
 from mininet.log import info, setLogLevel
 from mn_wifi.link import adhoc
 
+from commons.network import setup_network
+from commons.rest import set_rest_location, create_json_drones
+from commons.utils import time_stamp, kill_process, kill_containers, save_logs_to_results
 from containernet.net import Containernet
 from containernet.node import DockerSta
 from containernet.term import makeTerm
-from fanet_utils import create_json_drones, kill_containers, kill_process, save_logs_to_results, set_rest_location, \
-    setup_network, time_stamp
 
 
 def simulate(number_of_drones: int = 5,
@@ -150,6 +151,7 @@ the compromised drone tries to change the destination coordinates\n")
     kill_process()
     net.stop()
     save_logs_to_results()
+    grafana.kill()
 
 
 if __name__ == '__main__':
@@ -158,7 +160,7 @@ if __name__ == '__main__':
     kill_process()
     kill_containers()
 
-    if len(sys.argv) >= 2:
+    if len(sys.argv) == 4:
         print('number of drones: ' + str(sys.argv[1]))
         simulate(number_of_drones=int(sys.argv[1]),
                  iterations_count=int(sys.argv[2]),

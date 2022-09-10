@@ -1,6 +1,6 @@
 #!/usr/bin/python
 """
-This is the most simple example to showcase Containernet.
+This is the simplest example to showcase Containernet.
 """
 
 import subprocess
@@ -11,16 +11,16 @@ from mininet.cli import CLI
 from mininet.log import info, setLogLevel
 from mn_wifi.link import adhoc
 
+from commons.network import setup_network
+from commons.rest import set_rest_location
+from commons.utils import time_stamp, kill_process, kill_containers, save_logs_to_results
 from containernet.net import Containernet
 from containernet.node import DockerSta
 from containernet.term import makeTerm
-from fanet_utils import kill_containers, kill_process, save_logs_to_results, set_rest_location, setup_network, \
-    time_stamp
 
 
 def simulate(iterations_count: int = 5,
-             wait_time_in_seconds: int = 5,
-             skip_cli_simulation=False):
+             wait_time_in_seconds: int = 5):
     start_location_server = 'touch /data/locations.csv && python /rest/locationRestServer.py &'
     tail_locations_log = "tail -f /data/locations.csv"
 
@@ -76,7 +76,7 @@ def simulate(iterations_count: int = 5,
                         cpu_quota=10000,
                         position='31,61,10')
 
-    # Holybro PX4 Vision
+    # Holy-bro PX4 Vision
     d3 = net.addStation('drone3',
                         ip='10.0.0.251',
                         mac='00:00:00:00:00:03',
@@ -106,7 +106,7 @@ def simulate(iterations_count: int = 5,
                         cpu_quota=10000,
                         position='60,20,10')
 
-    # Jetson Nano ARM Cortex-A57 3 GB LPDDR4
+    # Jetson Nano ARM Cortex-A57 3 GB PDDL4
     d5 = net.addStation('drone5',
                         ip='10.0.0.253',
                         mac='00:00:00:00:00:05',
@@ -196,6 +196,7 @@ the compromised drone tries to change the destination coordinates\n")
     kill_process()
     net.stop()
     save_logs_to_results()
+    grafana.kill()
 
 
 if __name__ == '__main__':
@@ -204,10 +205,10 @@ if __name__ == '__main__':
     kill_process()
     kill_containers()
 
-    if len(sys.argv) == 3 and str(sys.argv[0]) != "sudo":
-        skip_cli = True
+    if len(sys.argv) == 3:
         print('iterations: ' + sys.argv[1])
         print('wait time: ' + sys.argv[2])
-        simulate(int(sys.argv[1]), int(sys.argv[2]), skip_cli)
+        simulate(iterations_count=int(sys.argv[1]),
+                 wait_time_in_seconds=int(sys.argv[2]))
     else:
         simulate()

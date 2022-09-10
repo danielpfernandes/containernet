@@ -1,6 +1,6 @@
 #!/usr/bin/python
 """
-This is an example of use case for FANETs simulation using Containernet with Hyperledger Sawtooth and PoET Consensus.
+This is an example of use case for FANET simulation using Containernet with Hyperledger Sawtooth and PoET Consensus.
 """
 import os
 import subprocess
@@ -9,14 +9,15 @@ import time
 
 from mininet.cli import CLI
 from mininet.log import info, setLogLevel
-from mn_wifi.link import adhoc
 
+from commons.network import setup_network, start_bs2_station
+from commons.rest import set_rest_location
+from commons.sawtooth import set_sawtooth_location, validate_scenario, create_txt_drones, \
+    initialize_parameterized_sawtooth, save_sawtooth_logs, get_destinations
+from commons.utils import time_stamp, kill_process, kill_containers, save_logs_to_results
 from containernet.net import Containernet
 from containernet.node import DockerSta
 from containernet.term import makeTerm
-from fanet_utils import create_txt_drones, get_sawtooth_destination, initialize_parameterized_sawtooth, \
-    save_logs_to_results, validate_scenario, kill_containers, \
-    kill_process, set_sawtooth_location, set_rest_location, setup_network, time_stamp
 
 CONSENSUS_ALGORITHM = "poet"
 
@@ -95,52 +96,53 @@ def simulate(number_of_drones=5,
     # os.system(setNodePosition)
 
     # Common variables
-    sc06_coords = {'lat': '5001', 'long': '1001'}
-    sc07_coords = {'lat': '5002', 'long': '1002'}
-    sc08_coords = '5002 1003'
-    sc09_coords = {'lat': '5002', 'long': '1004'}
-    sc10_coords = '5002 1005'
+    sc06_coordinates = {'lat': '5001', 'long': '1001'}
+    sc07_coordinates = {'lat': '5002', 'long': '1002'}
+    sc08_coordinates = '5002 1003'
+    sc09_coordinates = {'lat': '5002', 'long': '1004'}
+    sc10_coordinates = '5002 1005'
     expected_sc06 = '50011001'
     expected_sc07 = '50021002'
     expected_sc09 = '50041004'
 
     # -------------------------------------- SCENARIO 06 -------------------------------------- #
-    info(time_stamp() + "*** Scenario 6: BS1 sends the new coordinates and the Sawtooth" \
+    info(time_stamp() + "*** Scenario 6: BS1 sends the new coordinates and the Sawtooth"
                         " network validates the update of the information\n")
     info(time_stamp() + "*** Scenario 6 Expected: Coordinates set to 50011001101\n")
-    set_sawtooth_location(bs1, sc06_coords, iterations=iterations_count, interval=wait_time_in_seconds)
+    set_sawtooth_location(bs1, sc06_coordinates, iterations=iterations_count, interval=wait_time_in_seconds)
     validate_scenario(net, expected_sc06, get_destinations(*drones))
 
     # -------------------------------------- SCENARIO 07 -------------------------------------- #
-    info(time_stamp() + "*** Scenario 7: BS1 sends changes the coordinates and the Sawtooth" \
+    info(time_stamp() + "*** Scenario 7: BS1 sends changes the coordinates and the Sawtooth"
                         " network validates the update of the information\n")
     info(time_stamp() + "*** Scenario 7 Expected: Coordinates set to 50021002102\n")
-    set_sawtooth_location(bs1, sc07_coords, iterations=iterations_count, interval=wait_time_in_seconds)
+    set_sawtooth_location(bs1, sc07_coordinates, iterations=iterations_count, interval=wait_time_in_seconds)
     validate_scenario(net, expected_sc07, get_destinations(*drones))
 
     # -------------------------------------- SCENARIO 08 -------------------------------------- #
-    info(time_stamp() + "*** Scenario 8: A  Drone 5 is compromised and tries to change the destination coordinates" \
+    info(time_stamp() + "*** Scenario 8: A  Drone 5 is compromised and tries to change the destination coordinates"
                         "using the unprotected REST Interface\n")
     info(time_stamp() + "*** Scenario 8 Expected: Coordinates keep to 50021002102 (Exploited if set to 50301030303)\n")
-    set_rest_location(drones[0], iterations_count, wait_time_in_seconds, target='10.0.0.249', coordinates=sc08_coords)
+    set_rest_location(drones[0], iterations_count, wait_time_in_seconds, target='10.0.0.249',
+                      coordinates=sc08_coordinates)
     validate_scenario(net, expected_sc07, get_destinations(*drones))
 
     # -------------------------------------- SCENARIO 09 -------------------------------------- #
-    info(time_stamp() + "*** Scenario 9: Connection with the base station is lost and" \
+    info(time_stamp() + "*** Scenario 9: Connection with the base station is lost and"
                         "drone2 needs to rearrange the destination coordinates for emergency purposes\n")
     info(time_stamp() + "*** Scenario 9 Expected: Coordinates keep to 50041004104\n")
     os.system('docker container rm mn.base1 --force')
-    set_sawtooth_location(drones[-1], sc09_coords, iterations=iterations_count, interval=wait_time_in_seconds)
+    set_sawtooth_location(drones[-1], sc09_coordinates, iterations=iterations_count, interval=wait_time_in_seconds)
     validate_scenario(net, expected_sc09, get_destinations(*drones))
 
     # -------------------------------------- SCENARIO 10 -------------------------------------- #
-    info(time_stamp() + "*** Scenario 10:  compromised base station joins the network tries to change the destination" \
+    info(time_stamp() + "*** Scenario 10:  compromised base station joins the network tries to change the destination"
                         " coordinates through the unsecure REST interface\n")
     info(time_stamp() + "*** Scenario 10 Expected: Coordinates keep to 50041004104 (Exploited if set to 50501050505)\n")
     bs2 = start_bs2_station(net)
     if not skip_cli_simulation:
         makeTerm(bs2, cmd="bash")
-    set_rest_location(bs2, iterations_count, wait_time_in_seconds, '10.0.0.250', coordinates=sc10_coords)
+    set_rest_location(bs2, iterations_count, wait_time_in_seconds, '10.0.0.250', coordinates=sc10_coordinates)
     validate_scenario(net, expected_sc07, get_destinations(*drones))
 
     info(time_stamp() + "*** Saving Drones logs at /tmp/drone/data/sawtooth/\n")
@@ -154,33 +156,7 @@ def simulate(number_of_drones=5,
     info(time_stamp() + '*** Stopping network\n')
     kill_process()
     net.stop()
-
-
-def start_bs2_station(net):
-    bs2 = net.addStation('base2',
-                         ip='10.0.0.101',
-                         mac='00:00:00:00:00:00',
-                         cls=DockerSta,
-                         dimage="containernet_example:sawtoothAll",
-                         ports=[4004, 8008, 8800, 5050, 3030, 5000],
-                         volumes=["/tmp/base2:/root"])
-    net.addLink(bs2, cls=adhoc, intf='base2-wlan0',
-                ssid='adhocNet', proto='batman_adv',
-                mode='g', channel=5, ht_cap='HT40+')
-
-    return bs2
-
-
-def save_sawtooth_logs(*args):
-    for node in args:
-        node.cmd('mkdir /data/sawtooth/ && cp /var/log/sawtooth/* /data/sawtooth/')
-
-
-def get_destinations(*args):
-    destinations = []
-    for drone in args:
-        destinations.append(get_sawtooth_destination(drone))
-    return destinations
+    grafana.kill()
 
 
 if __name__ == '__main__':
