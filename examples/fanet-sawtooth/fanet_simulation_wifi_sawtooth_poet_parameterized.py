@@ -12,7 +12,7 @@ from mininet.log import info, setLogLevel
 
 from commons.network import setup_network, start_bs2_station
 from commons.rest import set_rest_location
-from commons.sawtooth import set_sawtooth_location, validate_scenario, create_txt_drones, \
+from commons.sawtooth import set_sawtooth_location, validate_scenario, create_ip_list_sawtooth_drones, \
     initialize_parameterized_sawtooth, save_sawtooth_logs, get_destinations
 from commons.utils import time_stamp, kill_process, kill_containers, save_logs_to_results
 from containernet.net import Containernet
@@ -34,7 +34,7 @@ def simulate(number_of_drones=5,
     docker_image = "containernet_example:sawtoothAll"
     drones = []
 
-    create_txt_drones(number_of_drones)
+    create_ip_list_sawtooth_drones(number_of_drones)
 
     info(time_stamp() + '*** Starting monitors\n')
     grafana = subprocess.Popen(
@@ -166,7 +166,7 @@ if __name__ == '__main__':
     kill_containers()
 
     if len(sys.argv) == 4:
-        skip_cli = True
+        skip_cli = False
         print('number of drones: ' + sys.argv[1])
         print('iterations: ' + sys.argv[2])
         print('wait time: ' + sys.argv[3])

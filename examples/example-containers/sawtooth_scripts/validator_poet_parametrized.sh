@@ -29,16 +29,18 @@ while IFS="" read -r p || [ -n "$p" ]; do
 done < /sawtooth_scripts/drones.txt
 
 case $1 in
-base1)  VALIDATOR='0' echo "Base with peers $PEERS";;
+base1)  VALIDATOR='0'
+  echo "Base $VALIDATOR with peers $PEERS";;
 drone) VALIDATOR='1'
     PEERS="tcp://$BASE1_IP:8800,$PEERS"
-    echo "Drone with peers $PEERS";;
+    echo "Drone $IP with peers $PEERS"
+    sleep 5;;
 *) echo "Invalid option";;
 esac 
 
     sawadm keygen --force &&
 
-if [ $VALIDATOR = '0' ];
+if [ $VALIDATOR == '0' ];
     then
     poet enclave measurement > poet-enclave-measurement &&
     poet enclave basename > poet-enclave-basename &&

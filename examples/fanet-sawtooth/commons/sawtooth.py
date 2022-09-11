@@ -12,7 +12,7 @@ cmd_keep_alive = '; bash'
 consensus_algorithms = ["pbft", "poet"]
 
 
-def create_txt_drones(number_of_drones):
+def create_ip_list_sawtooth_drones(number_of_drones):
     with open('examples/example-containers/sawtooth_scripts/drones.txt', 'w') as file:
         for i in range(number_of_drones):
             my_ip = '10.0.0.1' + str(i)
@@ -45,7 +45,7 @@ def initialize_sawtooth(should_open_terminal=False,
         start_consensus_mechanism(node, consensus_algorithm, should_open_terminal=False)
 
 
-def initialize_parameterized_sawtooth(should_open_terminal=False,
+def initialize_parameterized_sawtooth(should_open_terminal=True,
                                       wait_time_in_seconds: int = 0,
                                       keep_terminal_alive=False,
                                       consensus_algorithm="poet",
