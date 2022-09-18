@@ -29,7 +29,7 @@ def simulate(number_of_drones: int = 5,
     iterations_count = int(iterations_count)
     wait_time_in_seconds = int(wait_time_in_seconds)
     ports = [4004, 8008, 8800, 5050, 3030, 5000]
-    docker_image = "containernet_example:sawtoothAll"
+    docker_image = "containernet_sawtooth:latest"
     drones = []
 
     create_json_drones(number_of_drones)
@@ -132,7 +132,7 @@ the compromised drone tries to change the destination coordinates\n")
                          ip='10.0.0.101',
                          mac='00:00:10:01:00:00',
                          cls=DockerSta,
-                         dimage="containernet_example:sawtoothAll",
+                         dimage="containernet_sawtooth:latest",
                          ports=[4004, 8008, 8800, 5050, 3030, 5000],
                          volumes=["/tmp/base2:/root"])
     net.addLink(bs2, cls=adhoc, intf='base2-wlan0',

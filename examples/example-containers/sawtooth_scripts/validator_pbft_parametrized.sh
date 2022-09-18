@@ -26,7 +26,7 @@ while IFS="" read -r p || [ -n "$p" ]; do
             PEERS="$PEERS,tcp://$p:8800"
         fi
     fi
-done < /sawtooth_scripts/drones.txt
+done < /data/drones.txt
 
 case $1 in
 base1)  VALIDATOR='0' echo "Base with peers $PEERS";;

@@ -1,6 +1,8 @@
 import os
 import time
 
+from datetime import datetime
+
 
 def main_menu():
     os.system("clear")
@@ -86,11 +88,19 @@ def consensus_algorithm_menu():
     consensus_algorithm_menu()
 
 
+def print_summary(start_time, number_of_drones, messages, interval):
+    print("*** SIMULATION SUMMARY:")
+    print("*** Total time: {}".format(datetime.now() - start_time))
+    print("*** # of drones: {}".format(number_of_drones))
+    print("*** # of msgs per iteration: {}".format(messages))
+    print("*** Interval between messages: {}s".format(interval))
+
+
 def run_unprotected_scenario(option: int):
     os.system("clear")
+    start_time = datetime.now()
     if option == 1:
         os.system("sudo python examples/fanet-sawtooth/fanet_simulation_wifi_unsecured.py")
-        pause()
     elif option == 2:
         number_of_drones = validate_number_of_drones(3)
         iterations, interval = get_iterations_and_interval()
@@ -98,28 +108,30 @@ def run_unprotected_scenario(option: int):
                   + str(number_of_drones) + " "
                   + str(iterations) + " "
                   + str(interval))
-        pause()
+    print_summary(start_time, number_of_drones, iterations, interval)
+    pause()
 
 
 def run_sawtooth_scenario(algorithm: str, option: int):
     os.system("clear")
+    start_time = datetime.now()
     if option == 1:
         os.system("sudo python examples/fanet-sawtooth/fanet_simulation_wifi_sawtooth_{}.py".format(algorithm))
-        pause()
     elif option == 2:
         number_of_drones = validate_number_of_drones(3)
         iterations, interval = get_iterations_and_interval()
         os.system(
             "sudo python examples/fanet-sawtooth/fanet_simulation_wifi_sawtooth_{}_parameterized.py {} {} {}"
             .format(algorithm, number_of_drones, iterations, interval))
-        pause()
+    print_summary(start_time)
+    pause()
 
 
 def get_iterations_and_interval() -> tuple:
     print("Enter how many times the drones will trigger the messaging events")
     iterations = get_option()
     print("Enter the interval in seconds between the messages")
-    interval = get_option()
+    interval = get_interval_option()
     total_seconds = (int(interval) + 1) * int(iterations) * 5
     m, s = divmod(total_seconds, 60)
     h, m = divmod(m, 60)
@@ -139,6 +151,10 @@ def validate_number_of_drones(minimum_qty: int) -> int:
 
 def get_option() -> int:
     return int(input("Enter your option: "))
+
+
+def get_interval_option() -> float:
+    return float(input("Enter your option: "))
 
 
 def pause():

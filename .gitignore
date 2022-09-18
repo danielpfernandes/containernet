@@ -12,6 +12,7 @@ trunk
 mnexec
 mininet-wifi/*
 openflow/*
+results/
 .vagrant/
 .cache/
 .idea

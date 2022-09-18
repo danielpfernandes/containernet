@@ -7,16 +7,15 @@ import subprocess
 import sys
 import time
 
-from mininet.cli import CLI
 from mininet.log import info, setLogLevel
 
-from commons.network import setup_network, start_bs2_station
+from commons.network import setup_network, start_bs2_station, get_default_base_station, create_ip_list_sawtooth_drones, \
+    get_custom_fanet
 from commons.rest import set_rest_location
-from commons.sawtooth import set_sawtooth_location, validate_scenario, create_ip_list_sawtooth_drones, \
-    initialize_parameterized_sawtooth, save_sawtooth_logs, get_destinations
+from commons.sawtooth import set_sawtooth_location, validate_scenario, initialize_parameterized_sawtooth, \
+    save_sawtooth_logs, get_destinations
 from commons.utils import time_stamp, kill_process, kill_containers, save_logs_to_results
 from containernet.net import Containernet
-from containernet.node import DockerSta
 from containernet.term import makeTerm
 
 CONSENSUS_ALGORITHM = "poet"
@@ -24,15 +23,12 @@ CONSENSUS_ALGORITHM = "poet"
 
 def simulate(number_of_drones=5,
              iterations_count: int = 5,
-             wait_time_in_seconds: int = 5,
+             wait_time_in_seconds: float = 5,
              skip_cli_simulation=False):
     iterations_count = int(iterations_count)
-    wait_time_in_seconds = int(wait_time_in_seconds)
+    wait_time_in_seconds = float(wait_time_in_seconds)
     should_open_xterm = not skip_cli_simulation
     setLogLevel('info')
-    ports = [4004, 8008, 8800, 5050, 3030, 5000]
-    docker_image = "containernet_example:sawtoothAll"
-    drones = []
 
     create_ip_list_sawtooth_drones(number_of_drones)
 
@@ -40,43 +36,13 @@ def simulate(number_of_drones=5,
     grafana = subprocess.Popen(
         ["sh", "start_monitor.sh"], stdout=subprocess.PIPE)
 
-    time.sleep(wait_time_in_seconds / 2)
+    time.sleep(2.5)
 
     net = Containernet()
 
-    info(time_stamp() + '*** Adding base station\n')
+    bs1 = get_default_base_station(net)
 
-    bs1 = net.addStation('base1',
-                         ip='10.0.0.1',
-                         mac='00:00:00:00:00:00',
-                         cls=DockerSta,
-                         dimage=docker_image,
-                         ports=ports,
-                         port_bindings={88: 8008, 8008: 88},
-                         volumes=["/tmp/base1/data:/data"])
-
-    info(time_stamp() + '*** Adding docker drones\n')
-
-    for i in range(number_of_drones):
-        name = 'drone' + str(i)
-        my_ip = '10.0.0.1' + str(i)
-        if i < 10:
-            my_mac = '00:00:00:00:00:0' + str(i)
-        else:
-            my_mac = '00:00:00:00:00:' + str(i)
-        drone = net.addStation(name,
-                               ip=my_ip,
-                               mac=my_mac,
-                               cls=DockerSta,
-                               dimage=docker_image,
-                               ports=ports,
-                               volumes=["/tmp/" + name + "/data:/data"],
-                               mem_limit=900182016,
-                               cpu_shares=2,
-                               cpu_period=50000,
-                               cpu_quota=10000,
-                               position='30,60,10')
-        drones.append(drone)
+    drones = get_custom_fanet(net, number_of_drones=number_of_drones)
 
     setup_network(net, bs1, *drones)
 
@@ -103,7 +69,7 @@ def simulate(number_of_drones=5,
     sc10_coordinates = '5002 1005'
     expected_sc06 = '50011001'
     expected_sc07 = '50021002'
-    expected_sc09 = '50041004'
+    expected_sc09 = '50021004'
 
     # -------------------------------------- SCENARIO 06 -------------------------------------- #
     info(time_stamp() + "*** Scenario 6: BS1 sends the new coordinates and the Sawtooth"
@@ -151,7 +117,7 @@ def simulate(number_of_drones=5,
 
     if not skip_cli_simulation:
         info(time_stamp() + '*** Running CLI\n')
-        CLI(net)
+        # CLI(net)
 
     info(time_stamp() + '*** Stopping network\n')
     kill_process()
@@ -172,7 +138,7 @@ if __name__ == '__main__':
         print('wait time: ' + sys.argv[3])
         simulate(number_of_drones=int(sys.argv[1]),
                  iterations_count=int(sys.argv[2]),
-                 wait_time_in_seconds=int(sys.argv[3]),
+                 wait_time_in_seconds=float(sys.argv[3]),
                  skip_cli_simulation=skip_cli)
     else:
         simulate()

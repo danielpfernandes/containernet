@@ -23,14 +23,14 @@ CONSENSUS_ALGORITHM = "pbft"
 
 
 def simulate(iterations_count: int = 5,
-             wait_time_in_seconds: int = 5,
+             wait_time_in_seconds: float = 5,
              skip_cli_simulation=False):
     iterations_count = int(iterations_count)
-    wait_time_in_seconds = int(wait_time_in_seconds)
+    wait_time_in_seconds = float(wait_time_in_seconds)
     should_open_xterm = not skip_cli_simulation
     setLogLevel('info')
     ports = [4004, 8008, 8800, 5050, 3030, 5000]
-    docker_image = "containernet_example:sawtoothAll"
+    docker_image = "containernet_sawtooth:latest"
 
     os.system('cd examples/example-containers && ./build.sh')
 
@@ -38,7 +38,7 @@ def simulate(iterations_count: int = 5,
     grafana = subprocess.Popen(
         ["sh", "start_monitor.sh"], stdout=subprocess.PIPE)
 
-    time.sleep(wait_time_in_seconds / 2)
+    time.sleep(2.5)
 
     net = Containernet()
 
@@ -253,6 +253,8 @@ if __name__ == '__main__':
         skip_cli = True
         print('iterations: ' + sys.argv[1])
         print('wait time: ' + sys.argv[2])
-        simulate(int(sys.argv[1]), int(sys.argv[2]), skip_cli)
+        simulate(iterations_count=int(sys.argv[1]),
+                 wait_time_in_seconds=float(sys.argv[2]),
+                 skip_cli_simulation=skip_cli)
     else:
         simulate()

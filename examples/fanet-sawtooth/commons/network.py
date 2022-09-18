@@ -7,6 +7,9 @@ from containernet.net import Containernet
 from containernet.node import DockerSta
 from .utils import time_stamp
 
+ports = [4004, 8008, 8800, 5050, 3030, 5000]
+docker_image = "containernet_sawtooth:latest"
+
 
 def add_link(net: Containernet, node: any):
     net.addLink(node, cls=adhoc, intf=str(node.name) + '-wlan0',
@@ -54,10 +57,65 @@ def setup_network(net: Containernet, *argv):
     os.system(simple_test)
 
 
-def get_default_fanet(net: Containernet) -> list:
-    ports = [4004, 8008, 8800, 5050, 3030, 5000]
-    docker_image = "containernet_example:sawtoothAll"
+def create_ip_list_sawtooth_drones(number_of_drones):
+    with open('/tmp/drones.txt', 'w') as file:
+        for i in range(number_of_drones):
+            if i < 10:
+                my_ip = '10.0.0.1' + str(i)
+                file.write(my_ip + '\n')
+            else:
+                my_ip = '10.0.0.' + str(i)
+                file.write(my_ip + '\n')
 
+    # os.system('cd examples/example-containers && ./build.sh')
+
+
+def copy_ip_list_to_node(node_name: str):
+    os.system("docker cp /tmp/drones.txt mn.{}:/data/drones.txt".format(node_name))
+
+
+def get_custom_fanet(net: Containernet, number_of_drones: int) -> list:
+    info(time_stamp() + '*** Adding docker drones\n')
+    drones = []
+    for i in range(number_of_drones):
+
+        name = 'drone' + str(i)
+        if i < 10:
+            my_ip = '10.0.0.1' + str(i)
+            my_mac = '00:00:00:00:00:0' + str(i)
+        else:
+            my_ip = '10.0.0.' + str(i)
+            my_mac = '00:00:00:00:00:' + str(i)
+        drone = net.addStation(name,
+                               ip=my_ip,
+                               mac=my_mac,
+                               cls=DockerSta,
+                               dimage=docker_image,
+                               ports=ports,
+                               volumes=["/tmp/" + name + "/data:/data"],
+                               mem_limit=900182016,
+                               cpu_shares=2,
+                               cpu_period=50000,
+                               cpu_quota=10000,
+                               position='30,60,10')
+        drones.append(drone)
+    return drones
+
+
+def get_default_base_station(net: Containernet) -> any:
+    info(time_stamp() + '*** Adding base station\n')
+    return net.addStation('base1',
+                          ip='10.0.0.1',
+                          mac='00:00:00:00:00:00',
+                          cls=DockerSta,
+                          dimage=docker_image,
+                          ports=ports,
+                          port_bindings={88: 8008, 8008: 88},
+                          volumes=["/tmp/base1/data:/data"])
+
+
+def get_default_fanet(net: Containernet) -> list:
+    info(time_stamp() + '*** Adding docker drones\n')
     d1 = net.addStation('drone1',
                         ip='10.0.0.249',
                         mac='00:00:00:00:00:01',
@@ -135,7 +193,7 @@ def start_bs2_station(net):
                          ip='10.0.0.101',
                          mac='00:00:00:00:00:00',
                          cls=DockerSta,
-                         dimage="containernet_example:sawtoothAll",
+                         dimage="containernet_sawtooth:latest",
                          ports=[4004, 8008, 8800, 5050, 3030, 5000],
                          volumes=["/tmp/base2:/root"])
     net.addLink(bs2, cls=adhoc, intf='base2-wlan0',

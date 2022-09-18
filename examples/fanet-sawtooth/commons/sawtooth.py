@@ -6,19 +6,11 @@ from mininet.log import info
 
 from containernet.term import makeTerm
 from .utils import time_stamp, kill_process, coord_time_stamp
+from .network import copy_ip_list_to_node
 
 cmd_keep_alive = '; bash'
 
 consensus_algorithms = ["pbft", "poet"]
-
-
-def create_ip_list_sawtooth_drones(number_of_drones):
-    with open('examples/example-containers/sawtooth_scripts/drones.txt', 'w') as file:
-        for i in range(number_of_drones):
-            my_ip = '10.0.0.1' + str(i)
-            file.write(my_ip + '\n')
-
-    os.system('cd examples/example-containers && ./build.sh')
 
 
 def verify_consensus_algorithm(consensus: str):
@@ -80,6 +72,7 @@ def start_validator(node: any,
     """
     verify_consensus_algorithm(consensus_algorithm)
     station_name = str(node.name)
+    copy_ip_list_to_node(station_name)
     if is_parameterized and str(station_name) == "base1":
         command = 'bash /sawtooth_scripts/validator_{}_parametrized.sh base1'.format(consensus_algorithm)
     elif is_parameterized and station_name.startswith('drone'):
@@ -214,7 +207,7 @@ def start_consensus_mechanism(node: any,
 def set_sawtooth_location(station: any,
                           coordinate: dict,
                           iterations: int = 10,
-                          interval: int = 10):
+                          interval: float = 10):
     """Sets the coordinates to the destination of the FANET
 
     Args:

@@ -10,27 +10,24 @@ import time
 from mininet.cli import CLI
 from mininet.log import info, setLogLevel
 
-from commons.network import setup_network, get_default_fanet, start_bs2_station
+from commons.network import setup_network, get_default_fanet, start_bs2_station, get_default_base_station
 from commons.rest import set_rest_location
 from commons.sawtooth import initialize_sawtooth, set_sawtooth_location, validate_scenario, save_sawtooth_logs, \
     get_destinations
 from commons.utils import time_stamp, kill_process, kill_containers, save_logs_to_results
 from containernet.net import Containernet
-from containernet.node import DockerSta
 from containernet.term import makeTerm
 
 CONSENSUS_ALGORITHM = "poet"
 
 
 def simulate(iterations_count: int = 5,
-             wait_time_in_seconds: int = 5,
+             wait_time_in_seconds: float = 5,
              skip_cli_simulation=False):
     iterations_count = int(iterations_count)
-    wait_time_in_seconds = int(wait_time_in_seconds)
+    wait_time_in_seconds = float(wait_time_in_seconds)
     should_open_xterm = not skip_cli_simulation
     setLogLevel('info')
-    ports = [4004, 8008, 8800, 5050, 3030, 5000]
-    docker_image = "containernet_example:sawtoothAll"
 
     os.system('cd examples/example-containers && ./build.sh')
 
@@ -38,22 +35,11 @@ def simulate(iterations_count: int = 5,
     grafana = subprocess.Popen(
         ["sh", "start_monitor.sh"], stdout=subprocess.PIPE)
 
-    time.sleep(wait_time_in_seconds / 2)
+    time.sleep(2.5)
 
     net = Containernet()
 
-    info(time_stamp() + '*** Adding base station\n')
-
-    bs1 = net.addStation('base1',
-                         ip='10.0.0.1',
-                         mac='00:00:00:00:00:00',
-                         cls=DockerSta,
-                         dimage=docker_image,
-                         ports=ports,
-                         port_bindings={88: 8008, 8008: 88},
-                         volumes=["/tmp/base1/data:/data"])
-
-    info(time_stamp() + '*** Adding docker drones\n')
+    bs1 = get_default_base_station(net)
 
     drones = get_default_fanet(net)
 
@@ -105,7 +91,8 @@ def simulate(iterations_count: int = 5,
     info(time_stamp() + "*** Scenario 8: A  Drone 5 is compromised and tries to change the destination coordinates"
                         "using the unprotected REST Interface\n")
     info(time_stamp() + "*** Scenario 8 Expected: Coordinates keep to 50021002102 (Exploited if set to 50301030303)\n")
-    set_rest_location(drones[-1], iterations_count, wait_time_in_seconds, target='10.0.0.249', coordinates=sc08_coordinates)
+    set_rest_location(drones[-1], iterations_count, wait_time_in_seconds, target='10.0.0.249',
+                      coordinates=sc08_coordinates)
     validate_scenario(net, expected_sc07, get_destinations(*drones[0:4]))
 
     # -------------------------------------- SCENARIO 09 -------------------------------------- #
@@ -151,7 +138,7 @@ if __name__ == '__main__':
         print('iterations: ' + sys.argv[1])
         print('wait time: ' + sys.argv[2])
         simulate(iterations_count=int(sys.argv[1]),
-                 wait_time_in_seconds=int(sys.argv[2]),
+                 wait_time_in_seconds=float(sys.argv[2]),
                  skip_cli_simulation=should_skip_cli)
     else:
         simulate()

@@ -18,15 +18,29 @@ VALIDATOR_PRIV="/etc/sawtooth/keys/validator.priv"
 
 echo "$IP"
 
+#while IFS="" read -r p || [ -n "$p" ]; do
+#    if [ "$p" != "$IP" ]; then
+#        if [ -z "$PEERS" ]; then
+#            PEERS="tcp://$p:8800"
+#        else
+#            PEERS="$PEERS,tcp://$p:8800"
+#        fi
+#    fi
+#done < /data/drones.txt
+
 while IFS="" read -r p || [ -n "$p" ]; do
-    if [ "$p" != "$IP" ]; then
+    if [ "$p" == "$IP" ]; then
+      COUNTER=0
+      while IFS="" read -r q || [ -n "$q" ] || [ $COUNTER -lt 5 ] || [ -z "$q" ]; do
+        ((COUNTER++))
         if [ -z "$PEERS" ]; then
-            PEERS="tcp://$p:8800"
+            PEERS="tcp://$q:8800"
         else
-            PEERS="$PEERS,tcp://$p:8800"
+            PEERS="$PEERS,tcp://$q:8800"
         fi
+      done
     fi
-done < /sawtooth_scripts/drones.txt
+done < /data/drones.txt
 
 case $1 in
 base1)  VALIDATOR='0'
