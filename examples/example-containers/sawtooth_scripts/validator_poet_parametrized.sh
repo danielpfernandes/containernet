@@ -16,8 +16,6 @@ PEERS=""
 BASE1_IP='10.0.0.1'
 VALIDATOR_PRIV="/etc/sawtooth/keys/validator.priv"
 
-echo "$IP"
-
 #while IFS="" read -r p || [ -n "$p" ]; do
 #    if [ "$p" != "$IP" ]; then
 #        if [ -z "$PEERS" ]; then
@@ -27,26 +25,46 @@ echo "$IP"
 #        fi
 #    fi
 #done < /data/drones.txt
-
-while IFS="" read -r p || [ -n "$p" ]; do
-    if [ "$p" == "$IP" ]; then
-      COUNTER=0
-      while IFS="" read -r q || [ -n "$q" ] || [ $COUNTER -lt 5 ] || [ -z "$q" ]; do
-        ((COUNTER++))
-        if [ -z "$PEERS" ]; then
-            PEERS="tcp://$q:8800"
-        else
-            PEERS="$PEERS,tcp://$q:8800"
+if [ "$IP" != "$BASE1_IP" ]; then
+  while IFS="" read -r p || [ -n "$p" ]; do
+      if [ "$p" == "$IP" ]; then
+        COUNTER=0
+        while IFS="" read -r q || [ -n "$q" ] ; do
+          ((COUNTER++))
+          if [ "$COUNTER" -lt 4 ]; then
+            if [ -z "$PEERS" ]; then
+                PEERS="tcp://$q:8800"
+            else
+                PEERS="$PEERS,tcp://$q:8800"
+            fi
+          fi
+        done
+      fi
+  done < /data/drones.txt
+else
+  COUNTER=0
+  while IFS="" read -r p || [ -n "$p" ]; do
+    ((COUNTER++))
+      if [ "$p" != "$IP" ]; then
+        if [ "$COUNTER" -lt 4 ]; then
+          if [ -z "$PEERS" ]; then
+              PEERS="tcp://$p:8800"
+          else
+              PEERS="$PEERS,tcp://$p:8800"
+          fi
         fi
-      done
-    fi
-done < /data/drones.txt
-
+      fi
+  done < /data/drones.txt
+fi
 case $1 in
 base1)  VALIDATOR='0'
   echo "Base $VALIDATOR with peers $PEERS";;
 drone) VALIDATOR='1'
+  if [ -z "$PEERS" ]; then
+    PEERS="tcp://$BASE1_IP:8800"
+  else
     PEERS="tcp://$BASE1_IP:8800,$PEERS"
+  fi
     echo "Drone $IP with peers $PEERS"
     sleep 5;;
 *) echo "Invalid option";;
@@ -88,6 +106,7 @@ if [ $VALIDATOR == '0' ];
     --peering dynamic \
     --peers "$PEERS" \
     --seeds "$PEERS" \
+    --scheduler parallel \
     --network-auth trust
 
 else
@@ -100,6 +119,7 @@ else
     --peering dynamic \
     --peers "$PEERS" \
     --seeds "$PEERS" \
+    --scheduler parallel \
     --network-auth trust
 
 # ##### Other options

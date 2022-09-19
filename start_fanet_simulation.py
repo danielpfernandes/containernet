@@ -88,7 +88,7 @@ def consensus_algorithm_menu():
     consensus_algorithm_menu()
 
 
-def print_summary(start_time, number_of_drones, messages, interval):
+def print_summary(start_time, number_of_drones, messages, interval, algorithm):
     print("*** SIMULATION SUMMARY:")
     print("*** Total time: {}".format(datetime.now() - start_time))
     print("*** # of drones: {}".format(number_of_drones))
@@ -108,7 +108,7 @@ def run_unprotected_scenario(option: int):
                   + str(number_of_drones) + " "
                   + str(iterations) + " "
                   + str(interval))
-    print_summary(start_time, number_of_drones, iterations, interval)
+        print_summary(start_time, number_of_drones, iterations, interval, "none")
     pause()
 
 
@@ -117,13 +117,14 @@ def run_sawtooth_scenario(algorithm: str, option: int):
     start_time = datetime.now()
     if option == 1:
         os.system("sudo python examples/fanet-sawtooth/fanet_simulation_wifi_sawtooth_{}.py".format(algorithm))
+        print_summary(start_time, 4, 5, 5, "none")
     elif option == 2:
         number_of_drones = validate_number_of_drones(3)
         iterations, interval = get_iterations_and_interval()
         os.system(
             "sudo python examples/fanet-sawtooth/fanet_simulation_wifi_sawtooth_{}_parameterized.py {} {} {}"
             .format(algorithm, number_of_drones, iterations, interval))
-    print_summary(start_time)
+        print_summary(start_time, number_of_drones, iterations, interval, algorithm)
     pause()
 
 
