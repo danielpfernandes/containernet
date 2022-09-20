@@ -10,8 +10,10 @@ doc/html
 doc/latex
 trunk
 mnexec
-mininet-wifi/*
-openflow/*
+mininet-wifi/
+wmediumd/
+mac80211_hwsim_mgmt/
+openflow/
 results/
 .vagrant/
 .cache/
