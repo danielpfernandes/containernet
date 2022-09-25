@@ -1,3 +1,3 @@
 #!/bin/bash
 
-docker build -t containernet_example:sawtoothAll -f Dockerfile.sawtoothAll .
+docker build --build-arg IMAGE_VER="$(date +%s)" -t containernet_sawtooth:latest -f sawtoothAll.Dockerfile .

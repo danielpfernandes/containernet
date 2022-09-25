@@ -45,8 +45,8 @@ if [ $VALIDATOR = '0' ];
         sawtooth.consensus.algorithm.name=PoET \
         sawtooth.consensus.algorithm.version=0.1 \
         sawtooth.poet.report_public_key_pem="$(cat simulator_rk_pub.pem)" \
-        sawtooth.poet.valid_enclave_measurements=$(cat poet-enclave-measurement) \
-        sawtooth.poet.valid_enclave_basenames=$(cat poet-enclave-basename) &&
+        sawtooth.poet.valid_enclave_measurements="$(cat poet-enclave-measurement)" \
+        sawtooth.poet.valid_enclave_basenames="$(cat poet-enclave-basename)" &&
     
     sawset proposal create --key $VALIDATOR_PRIV \
         -o poet-settings.batch \

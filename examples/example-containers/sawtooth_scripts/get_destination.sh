@@ -1,5 +1,8 @@
 #!/bin/bash
-if [ ! -d "/data/" ]; then
+if [ ! -d "/data" ]; then
     mkdir /data
 fi
-intkey list > /data/locations.log
+if [ ! -d "/data/sawtooth" ]; then
+    mkdir /data/sawtooth
+fi
+intkey list > /data/sawtooth/locations.log

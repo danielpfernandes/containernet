@@ -20,14 +20,14 @@ def coord_time_stamp():
     return str(datetime.now().strftime('%Y-%m-%dT%H-%M-%S'))
 
 
-def post_data(address, lat, longi, propagate=0):
+def post_data(address, latitude, longitude, propagate=0):
     logging.basicConfig(filename=LOCATION_CLIENT_LOG_PATH,
                         filemode='a',
                         format="%(asctime)s %(name)s:%(levelname)s:%(message)s",
                         level=logging.DEBUG)
 
     # Prepare the Request payload
-    payload = {TIMESTAMP_KEY: coord_time_stamp(), LATITUDE_KEY: lat, LONGITUDE_KEY: longi}
+    payload = {TIMESTAMP_KEY: coord_time_stamp(), LATITUDE_KEY: latitude, LONGITUDE_KEY: longitude}
     headers = {'Content-Type': 'application/json'}
 
     # If the purpose is to propagate to others nodes, then the endpoint /propagate should be used
