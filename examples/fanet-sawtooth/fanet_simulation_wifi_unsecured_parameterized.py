@@ -164,7 +164,7 @@ if __name__ == '__main__':
         print('number of drones: ' + str(sys.argv[1]))
         simulate(number_of_drones=int(sys.argv[1]),
                  iterations_count=int(sys.argv[2]),
-                 wait_time_in_seconds=int(sys.argv[3]),
+                 wait_time_in_seconds=int(float(sys.argv[3])),
                  skip_cli=False)
     else:
         simulate()

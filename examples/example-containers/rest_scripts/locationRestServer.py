@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import codecs
 import logging
+import os
 import socket
 import subprocess
 from datetime import datetime
@@ -110,6 +111,11 @@ def validate_coordinates_with_base_station(request_json, base_station_url):
     success_message = 'Base Station matches with the request. Validation successful!'
 
     logging.info('Retrieving destination coordinates from base station')
+    response = os.system('ping -c ' + base_station_url)
+    if response == 0:
+        logging.error('Could not connect to the base station. Propagating coordinates anyway')
+        return True
+
     current_location = requests.get(base_station_url)
 
     logging.info(current_location)
