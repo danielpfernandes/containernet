@@ -147,32 +147,32 @@ def simulate(iterations_count: int = 5,
     # setNodePosition = 'python {}/setNodePosition.py '.format(path) + sta_drone_send + ' &'
     # os.system(setNodePosition)
 
-    # -------------------------------------- SCENARIO 01 -------------------------------------- #
-    info(time_stamp() + "*** Scenario 1: BS1 sends initial coordinates to Drone 3\n")
-    info(time_stamp() + "*** Scenario 1 Expected: Coordinates set to 50.01 10.01\n")
+    # -------------------------------------- STAGE 1A -------------------------------------- #
+    info(time_stamp() + "*** Stage 1A: BS1 sends initial coordinates to Drone 3\n")
+    info(time_stamp() + "*** Stage 1A Expected: Coordinates set to 50.01 10.01\n")
     set_rest_location(bs1, iterations=iterations_count, interval=wait_time_in_seconds,
                       target='10.0.0.251', coordinates=' 50.01 10.01')
-    # -------------------------------------- SCENARIO 02 -------------------------------------- #
-    info(time_stamp() + "*** Scenario 2: BS1 changes the destination coordinates through Drone 2\n")
-    info(time_stamp() + "*** Scenario 2 Expected: Coordinates set to 50.02 10.02\n")
+    # -------------------------------------- STAGE 2A -------------------------------------- #
+    info(time_stamp() + "*** Stage 2A: BS1 changes the destination coordinates through Drone 2\n")
+    info(time_stamp() + "*** Stage 2A Expected: Coordinates set to 50.02 10.02\n")
     set_rest_location(bs1, iterations=iterations_count, interval=wait_time_in_seconds,
                       target='10.0.0.250', coordinates='50.02 10.02')
-    # -------------------------------------- SCENARIO 03 -------------------------------------- #
-    info(time_stamp() + "*** Scenario 3: Drone 5 is compromised and tries to change the destination coordinates\n")
-    info(time_stamp() + "*** Scenario 3 Expected: Coordinates keep to 50.02 10.02 (Exploited if set to 50.02 10.03)\n")
+    # -------------------------------------- STAGE 3A -------------------------------------- #
+    info(time_stamp() + "*** Stage 3A: Drone 5 is compromised and tries to change the destination coordinates\n")
+    info(time_stamp() + "*** Stage 3A Expected: Coordinates keep to 50.02 10.02 (Exploited if set to 50.02 10.03)\n")
     set_rest_location(d5, iterations=iterations_count, interval=wait_time_in_seconds,
                       target='10.0.0.249', coordinates='50.02 10.03')
-    # -------------------------------------- SCENARIO 04 -------------------------------------- #
-    info(time_stamp() + "*** Scenario 4: Connection with the base station is lost and \
+    # -------------------------------------- STAGE 4A -------------------------------------- #
+    info(time_stamp() + "*** Stage 4A: Connection with the base station is lost and \
 the compromised drone tries to change the destination coordinates\n")
-    info(time_stamp() + "*** Scenario 4 Expected: Coordinates keep to 50.02 10.02 (Exploited if set to 50.02 10.04)\n")
+    info(time_stamp() + "*** Stage 4A Expected: Coordinates keep to 50.02 10.02 (Exploited if set to 50.02 10.04)\n")
     os.system('docker container rm mn.base1 --force')
     set_rest_location(d5, iterations=iterations_count, interval=wait_time_in_seconds,
                       target='10.0.0.249', coordinates='50.02 10.04')
-    # -------------------------------------- SCENARIO 05 -------------------------------------- #
+    # -------------------------------------- STAGE 5A -------------------------------------- #
     info(
-        time_stamp() + "*** Scenario 5: A compromised base station joins the network tries to change the destination coordinates\n")
-    info(time_stamp() + "*** Scenario 5 Expected: Coordinates keep to 50.02 10.02 (Exploited if set to 50.02 10.05)\n")
+        time_stamp() + "*** Stage 5A: A compromised base station joins the network tries to change the destination coordinates\n")
+    info(time_stamp() + "*** Stage 5A Expected: Coordinates keep to 50.02 10.02 (Exploited if set to 50.02 10.05)\n")
     bs2 = net.addStation('base2',
                          ip='10.0.0.101',
                          mac='00:00:00:00:00:00',

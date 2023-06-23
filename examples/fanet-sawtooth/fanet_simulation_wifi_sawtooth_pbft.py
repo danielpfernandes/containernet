@@ -190,39 +190,39 @@ def simulate(iterations_count: int = 5,
 
     CLI(net)
 
-    # -------------------------------------- SCENARIO 06 -------------------------------------- #
-    info(time_stamp() + "*** Scenario 6: BS1 sends the new coordinates and the Sawtooth"
+    # -------------------------------------- STAGE 1B -------------------------------------- #
+    info(time_stamp() + "*** Stage 1B: BS1 sends the new coordinates and the Sawtooth"
                         " network validates the update of the information\n")
-    info(time_stamp() + "*** Scenario 6 Expected: Coordinates set to 50011001101\n")
+    info(time_stamp() + "*** Stage 1B Expected: Coordinates set to 50011001101\n")
     set_sawtooth_location(bs1, sc06_coordinates, iterations=iterations_count, interval=wait_time_in_seconds)
     validate_scenario(net, expected_sc06, get_destinations(d1, d2, d3, d4))
 
-    # -------------------------------------- SCENARIO 07 -------------------------------------- #
-    info(time_stamp() + "*** Scenario 7: BS1 sends changes the coordinates and the Sawtooth"
+    # -------------------------------------- STAGE 2B -------------------------------------- #
+    info(time_stamp() + "*** Stage 2B: BS1 sends changes the coordinates and the Sawtooth"
                         " network validates the update of the information\n")
-    info(time_stamp() + "*** Scenario 7 Expected: Coordinates set to 50021002102\n")
+    info(time_stamp() + "*** Stage 2B Expected: Coordinates set to 50021002102\n")
     set_sawtooth_location(bs1, sc07_coordinates, iterations=iterations_count, interval=wait_time_in_seconds)
     validate_scenario(net, expected_sc07, get_destinations(d1, d2, d3, d4))
 
-    # -------------------------------------- SCENARIO 08 -------------------------------------- #
-    info(time_stamp() + "*** Scenario 8: A  Drone 5 is compromised and tries to change the destination coordinates"
+    # -------------------------------------- STAGE 3B -------------------------------------- #
+    info(time_stamp() + "*** Stage 3B: A  Drone 5 is compromised and tries to change the destination coordinates"
                         "using the unprotected REST Interface\n")
-    info(time_stamp() + "*** Scenario 3 Expected: Coordinates keep to 50021002102 (Exploited if set to 50301030303)\n")
+    info(time_stamp() + "*** Stage 3B Expected: Coordinates keep to 50021002102 (Exploited if set to 50301030303)\n")
     set_rest_location(d5, iterations_count, wait_time_in_seconds, target='10.0.0.249', coordinates=sc08_coordinates)
     validate_scenario(net, expected_sc07, get_destinations(d1, d2, d3, d4))
 
-    # -------------------------------------- SCENARIO 09 -------------------------------------- #
-    info(time_stamp() + "*** Scenario 9: Connection with the base station is lost and"
+    # -------------------------------------- STAGE 4B -------------------------------------- #
+    info(time_stamp() + "*** Stage 4B: Connection with the base station is lost and"
                         " drone2 needs to rearrange the destination coordinates for emergency purposes\n")
-    info(time_stamp() + "*** Scenario 9 Expected: Coordinates keep to 50041004104\n")
+    info(time_stamp() + "*** Stage 4B Expected: Coordinates keep to 50041004104\n")
     os.system('docker container rm mn.base1 --force')
     set_sawtooth_location(d2, sc09_coordinates, iterations=iterations_count, interval=wait_time_in_seconds)
     validate_scenario(net, expected_sc09, get_destinations(d1, d2, d3, d4))
 
-    # -------------------------------------- SCENARIO 10 -------------------------------------- #
-    info(time_stamp() + "*** Scenario 10:  compromised base station joins the network tries to change the destination"
+    # -------------------------------------- STAGE 5B -------------------------------------- #
+    info(time_stamp() + "*** Stage 5B:  compromised base station joins the network tries to change the destination"
                         " coordinates through the unsecure REST interface\n")
-    info(time_stamp() + "*** Scenario 3 Expected: Coordinates keep to 50041004104 (Exploited if set to 50501050505)\n")
+    info(time_stamp() + "*** Stage 5B Expected: Coordinates keep to 50041004104 (Exploited if set to 50501050505)\n")
     bs2 = start_bs2_station(net)
     if not skip_cli_simulation:
         makeTerm(bs2, cmd="bash")
