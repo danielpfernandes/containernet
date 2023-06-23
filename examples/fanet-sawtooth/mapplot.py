@@ -30,15 +30,15 @@ def main():
     
     coordinates = get_coordinates_from_file()
     origin= get_coordinates(coordinates[0])
-    expected_scenario_one = get_coordinates(coordinates[1])
-    expected_scenario_two = get_coordinates(coordinates[2])
-    actual_scenario_three = get_coordinates(coordinates[3])
-    actual_scenario_four = get_coordinates(coordinates[4])
-    actual_scenario_five = get_coordinates(coordinates[5])
-    mission_coordinates = [origin,expected_scenario_one,expected_scenario_two]
-    actual_coordinates = [expected_scenario_two, actual_scenario_three, actual_scenario_four, actual_scenario_five]
-    expected_names = ['Origin', 'Scenario 1', 'Scenarios 2,3,4,5']
-    actual_names = ['Scenario 2','Scenario 3', 'Scenario 4', 'Scenario 5']
+    expected_stage_one = get_coordinates(coordinates[1])
+    expected_stage_two = get_coordinates(coordinates[2])
+    actual_stage_three = get_coordinates(coordinates[3])
+    actual_stage_four = get_coordinates(coordinates[4])
+    actual_stage_five = get_coordinates(coordinates[5])
+    mission_coordinates = [origin,expected_stage_one,expected_stage_two]
+    actual_coordinates = [expected_stage_two, actual_stage_three, actual_stage_four, actual_stage_five]
+    expected_names = ['Origin', 'Stage 1A', 'Stages 2,3,4,5']
+    actual_names = ['Stage 2A','Stage 3A', 'Stage 4A', 'Stage 5A']
     map = folium.Map(origin, tiles='OpenStreetMap', zoom_start=13)
     add_markers(map, mission_coordinates, expected_names)
     add_markers(map, actual_coordinates, actual_names, icon_color='red')
