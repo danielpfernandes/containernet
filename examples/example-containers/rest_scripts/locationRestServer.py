@@ -109,17 +109,22 @@ def validate_coordinates_with_base_station(request_json, base_station_url):
     error_message = 'Propagation of coordinates does not match with the base station information. Validation failed'
     success_message = 'Base Station matches with the request. Validation successful!'
 
-    logging.info('Retrieving destination coordinates from base station')
-    current_location = requests.get(base_station_url)
-
-    logging.info(current_location)
-    logging.info('Base station response: ' + str(current_location.content))
-    logging.info('New coordinates payload' + str(request_json))
-
-    if compare_coordinates(json.loads(current_location.content), request_json) and current_location.status_code == 200:
-        logging.info(success_message)
+    logging.error('Retrieving destination coordinates from base station')
+    try:
+        current_location = requests.get(base_station_url)
+    except:
+        logging.error('Could not connect to the base station. Propagating coordinates anyway')
         return True
-    logging.error(error_message)
+    else:
+        logging.error(current_location)
+        logging.error('Base station response: ' + str(current_location.content))
+        logging.error('New coordinates payload' + str(request_json))
+
+        if compare_coordinates(json.loads(current_location.content),
+                               request_json) and current_location.status_code == 200:
+            logging.error(success_message)
+            return True
+        logging.error(error_message)
     return False
 
 
