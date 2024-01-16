@@ -140,7 +140,7 @@ OF13_SWITCH_REV=${OF13_SWITCH_REV:-""}
 
 function pre_build {
     cd $BUILD_DIR
-    rm -rf openflow pox oftest oflops ofsoftswitch13 loxigen ivs ryu noxcore nox13oflib
+    rm -rf openflow oflops ofsoftswitch13 loxigen ivs ryu noxcore nox13oflib
 }
 
 function kernel {
@@ -195,7 +195,6 @@ function mn_deps {
 # Install Mininet-WiFi deps
 function mn_wifi_deps {
     echo "Installing Mininet/Mininet-WiFi dependencies"
-
     echo "Installing Mininet-WiFi core"
     pushd $MININET_DIR/containernet
     if [ -d mininet-wifi ]; then
@@ -207,6 +206,17 @@ function mn_wifi_deps {
     sudo util/install.sh -Wlnfv
     sudo PYTHON=${PYTHON} make install
     popd
+
+    $install aptitude apt-transport-https ca-certificates curl build-essential software-properties-common gnupg
+    sudo install -m 0755 -d /etc/apt/keyrings
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+    sudo chmod a+r /etc/apt/keyrings/docker.gpg
+    echo "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+         "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
+         sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+    $update update
+    $install docker-ce
+    sudo PYTHON=${PYTHON} pip install docker
 
     pushd $MININET_DIR/containernet
     sudo PYTHON=${PYTHON} make install
@@ -285,59 +295,6 @@ function of13 {
     ./configure
     make
     sudo make install
-    cd $BUILD_DIR
-}
-
-
-function install_wireshark {
-    if ! which wireshark; then
-        echo "Installing Wireshark"
-        if [ "$DIST" = "Fedora" -o "$DIST" = "RedHatEnterpriseServer" -o "$DIST" = "CentOS" ]; then
-            $install wireshark wireshark-gnome
-		elif [ "$DIST" = "SUSE LINUX"  ]; then
-			$install wireshark
-        else
-            $install wireshark tshark
-        fi
-    fi
-
-    # Copy coloring rules: OF is white-on-blue:
-    echo "Optionally installing wireshark color filters"
-    mkdir -p $HOME/.wireshark
-    cp -n $MININET_DIR/containernet/util/colorfilters $HOME/.wireshark
-
-    echo "Checking Wireshark version"
-    WSVER=`wireshark -v | egrep -o '[0-9\.]+' | head -1`
-    if version_ge $WSVER 1.12; then
-        echo "Wireshark version $WSVER >= 1.12 - returning"
-        return
-    fi
-
-    echo "Cloning LoxiGen and building openflow.lua dissector"
-    cd $BUILD_DIR
-    git clone https://github.com/floodlight/loxigen.git
-    cd loxigen
-    make wireshark
-
-    # Copy into plugin directory
-    # libwireshark0/ on 11.04; libwireshark1/ on later
-
-    if [ "$ARCH" = "amd64" ]; then
-        WSDIR=`find /usr/lib64 -type d -name 'wireshark*' | head -1`
-	    if [ -z "$WSDIR" ]; then
-            WSDIR=`find /usr/lib64 -type d -name 'libwireshark*' | head -1`
-        fi
-    else
-        WSDIR=`find /usr/lib -type d -name 'wireshark*' | head -1`
-        if [ -z "$WSDIR" ]; then
-            WSDIR=`find /usr/lib -type d -name 'libwireshark*' | head -1`
-        fi
-    fi
-    WSPLUGDIR=$WSDIR/plugins/
-    PLUGIN=loxi_output/wireshark/openflow.lua
-    sudo cp $PLUGIN $WSPLUGDIR
-    echo "Copied openflow plugin $PLUGIN to $WSPLUGDIR"
-
     cd $BUILD_DIR
 }
 
@@ -485,123 +442,6 @@ function remove_ovs {
     echo "Done removing OVS"
 }
 
-# "Install" POX
-function pox {
-    echo "Installing POX into $BUILD_DIR/pox..."
-    cd $BUILD_DIR
-    git clone https://github.com/noxrepo/pox.git
-}
-
-# Install OFtest
-function oftest {
-    echo "Installing oftest..."
-
-    # Install deps:
-    $install tcpdump python-scapy
-
-    # Install oftest:
-    cd $BUILD_DIR/
-    git clone https://github.com/floodlight/oftest
-}
-
-# Install cbench
-function cbench {
-    echo "Installing cbench..."
-
-    if [ "$DIST" = "Fedora" -o "$DIST" = "RedHatEnterpriseServer" -o "$DIST" = "CentOS" ]; then
-        $install net-snmp-devel libpcap-devel libconfig-devel
-	elif [ "$DIST" = "SUSE LINUX"  ]; then
-		$install net-snmp-devel libpcap-devel libconfig-devel
-    else
-        $install libsnmp-dev libpcap-dev libconfig-dev
-    fi
-    cd $BUILD_DIR/
-    # was:  git clone git://gitosis.stanford.edu/oflops.git
-    # Use our own fork on github for now:
-    git clone https://github.com/mininet/oflops
-    cd oflops
-    sh boot.sh || true # possible error in autoreconf, so run twice
-    sh boot.sh
-    ./configure --with-openflow-src-dir=$BUILD_DIR/openflow
-    make
-    sudo make install || true # make install fails; force past this
-}
-
-function vm_other {
-    echo "Doing other Mininet VM setup tasks..."
-
-    # Remove avahi-daemon, which may cause unwanted discovery packets to be
-    # sent during tests, near link status changes:
-    echo "Removing avahi-daemon"
-    $remove avahi-daemon
-
-    # was: Disable IPv6.  Add to /etc/modprobe.d/blacklist:
-    #echo "Attempting to disable IPv6"
-    #if [ "$DIST" = "Ubuntu" ]; then
-    #    BLACKLIST=/etc/modprobe.d/blacklist.conf
-    #else
-    #    BLACKLIST=/etc/modprobe.d/blacklist
-    #fi
-    #sudo sh -c "echo 'blacklist net-pf-10\nblacklist ipv6' >> $BLACKLIST"
-    echo "Disabling IPv6"
-    # Disable IPv6
-    if ! grep 'disable_ipv6' /etc/sysctl.conf; then
-        echo 'Disabling IPv6'
-        echo '
-# Mininet: disable IPv6
-net.ipv6.conf.all.disable_ipv6 = 1
-net.ipv6.conf.default.disable_ipv6 = 1
-net.ipv6.conf.lo.disable_ipv6 = 1' | sudo tee -a /etc/sysctl.conf > /dev/null
-    fi
-    # Since the above doesn't disable neighbor discovery, also do this:
-    if ! grep 'ipv6.disable' /etc/default/grub; then
-        sudo sed -i -e \
-        's/GRUB_CMDLINE_LINUX_DEFAULT="/GRUB_CMDLINE_LINUX_DEFAULT="ipv6.disable=1 /' \
-        /etc/default/grub
-        sudo update-grub
-    fi
-    # Disabling IPv6 breaks X11 forwarding via ssh
-    line='AddressFamily inet'
-    file='/etc/ssh/sshd_config'
-    echo "Adding $line to $file"
-    if ! grep "$line" $file > /dev/null; then
-        echo "$line" | sudo tee -a $file > /dev/null
-    fi
-
-    # Enable command auto completion using sudo; modify ~/.bashrc:
-    sed -i -e 's|# for examples$|&\ncomplete -cf sudo|' ~/.bashrc
-
-    # Install tcpdump, cmd-line packet dump tool.  Also install gitk,
-    # a graphical git history viewer.
-    $install tcpdump gitk
-
-    # Install common text editors
-    $install vim nano emacs
-
-    # Install NTP
-    $install ntp
-
-    # Install vconfig for VLAN example
-    if [ "$DIST" = "Fedora" -o "$DIST" = "RedHatEnterpriseServer" -o "$DIST" = "CentOS" ]; then
-        $install vconfig
-    else
-        $install vlan
-    fi
-
-    # Set git to colorize everything.
-    git config --global color.diff auto
-    git config --global color.status auto
-    git config --global color.branch auto
-
-    # Reduce boot screen opt-out delay. Modify timeout in /boot/grub/menu.lst to 1:
-    if [ "$DIST" = "Debian" ]; then
-        sudo sed -i -e 's/^timeout.*$/timeout         1/' /boot/grub/menu.lst
-    fi
-
-    # Clean unneeded debs:
-    rm -f ~/linux-headers-* ~/linux-image-*
-}
-
 # Script to copy built OVS kernel module to where modprobe will
 # find them automatically.  Removes the need to keep an environment variable
 # for insmod usage, and works nicely with multiple kernel versions.
@@ -639,11 +479,7 @@ function all {
     # Skip mn_dev (doxypy/texlive/fonts/etc.) because it's huge
     # mn_dev
     of
-    install_wireshark
     ovs
-    pox
-    oftest
-    cbench
     echo "Enjoy Mininet!"
 }
 
@@ -714,15 +550,12 @@ function usage {
     printf -- ' -k: install new (K)ernel\n' >&2
     printf -- ' -m: install Open vSwitch kernel (M)odule from source dir\n' >&2
     printf -- ' -n: install Mini(N)et dependencies + core files\n' >&2
-    printf -- ' -p: install (P)OX OpenFlow Controller\n' >&2
     printf -- ' -r: remove existing Open vSwitch packages\n' >&2
     printf -- ' -s <dir>: place dependency (S)ource/build trees in <dir>\n' >&2
     printf -- ' -t: complete o(T)her Mininet VM setup tasks\n' >&2
     printf -- ' -v: install Open (V)switch\n' >&2
     printf -- ' -V <version>: install a particular version of Open (V)switch on Ubuntu\n' >&2
-    printf -- ' -w: install OpenFlow (W)ireshark dissector\n' >&2
     printf -- ' -W: install Mininet-WiFi\n' >&2
-    printf -- ' -0: (default) -0[fx] installs OpenFlow 1.0 versions\n' >&2
     printf -- ' -3: -3[fx] installs OpenFlow 1.3 versions\n' >&2
     exit 2
 }
@@ -733,11 +566,10 @@ if [ $# -eq 0 ]
 then
     all
 else
-    while getopts 'abcdefhikmnprs:tvV:wW03' OPTION
+    while getopts 'abcdefhkmnprs:vV:W3' OPTION
     do
       case $OPTION in
       a)    all;;
-      b)    cbench;;
       c)    kernel_clean;;
       d)    vm_clean;;
       e)    mn_dev;;
@@ -750,16 +582,13 @@ else
       k)    kernel;;
       m)    modprobe;;
       n)    mn_deps;;
-      p)    pox;;
       r)    remove_ovs;;
       s)    mkdir -p $OPTARG; # ensure the directory is created
             BUILD_DIR="$( cd -P "$OPTARG" && pwd )"; # get the full path
             echo "Dependency installation directory: $BUILD_DIR";;
-      t)    vm_other;;
       v)    ovs;;
       V)    OVS_RELEASE=$OPTARG;
             ubuntuOvs;;
-      w)    install_wireshark;;
       W)    mn_wifi_deps;;
       x)    case $OF_VERSION in
             1.0) nox;;
