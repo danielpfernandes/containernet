@@ -3,6 +3,7 @@ import codecs
 import logging
 import socket
 import subprocess
+import shlex
 from datetime import datetime
 
 import pandas as pd
@@ -81,10 +82,12 @@ def propagate_message(new_coordinates):
     for drone_ip in drones_ip_list:
         logging.info('Sending coordinates ' +
                      str(new_coordinates) + ' to host' + str(drone_ip))
-        result = subprocess.Popen('setLocation.py '
-                                  + drone_ip + ' '
-                                  + new_coordinates[LATITUDE_KEY] + ' '
-                                  + new_coordinates[LONGITUDE_KEY], shell=True, stdout=subprocess.PIPE)
+        
+        # Split the command into a list of arguments
+        command = shlex.split(f'setLocation.py {drone_ip} {new_coordinates[LATITUDE_KEY]} {new_coordinates[LONGITUDE_KEY]}')
+
+        # Pass the list of arguments to Popen
+        result = subprocess.Popen(command, stdout=subprocess.PIPE)
         logging.debug(result)
 
 
@@ -189,4 +192,4 @@ def validate_locations():
 
 
 if __name__ == '__main__':
-    api.run(host=LOCALHOST_IP, debug=True)
+    api.run(host=LOCALHOST_IP, debug=False)

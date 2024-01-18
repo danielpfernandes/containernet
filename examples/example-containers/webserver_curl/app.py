@@ -1,4 +1,5 @@
 from flask import Flask
+from flask import escape
 
 app = Flask(__name__)
 
@@ -16,7 +17,7 @@ def hello(arg=0):
         arg += 1
     except ValueError:
         pass
-    return str(arg) + "\n"
+    return escape(str(arg)) + "\n"
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=80)
