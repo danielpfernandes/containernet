@@ -192,4 +192,4 @@ def validate_locations():
 
 
 if __name__ == '__main__':
-    api.run(host=LOCALHOST_IP, debug=True)
+    api.run(host=LOCALHOST_IP, debug=False)
