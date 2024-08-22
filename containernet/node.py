@@ -41,6 +41,7 @@ Future enhancements:
 - Create proxy objects for remote nodes (Mininet: Cluster Edition)
 """
 import errno
+import multiprocessing
 import os
 import sys
 import re
@@ -59,10 +60,10 @@ from mininet.node import Node, Host, Switch
 from mininet.moduledeps import moduleDeps, pathCheck, TUN
 from mininet.util import (quietRun, errRun, netParse, ipAdd)
 from mininet.log import info, error, warn, debug
-from mn_wifi.node import Station
+from mn_wifi.node import AP, Station
 from mn_wifi.bmv2 import P4Switch, pickUnusedPort, writeToFile, SIMPLE_SWITCH_GRPC, VALGRIND_PREFIX, \
     BMV2_LOG_LINES, STRATUM_BMV2, PKT_BYTES_TO_DUMP
-from containernet.link import Intf, TCIntf, OVSIntf, Link
+from containernet.link import Intf, TCIntf, OVSIntf
 from distutils.version import StrictVersion
 
 CONTROLLER = []
@@ -602,6 +603,7 @@ class Docker ( Host ):
             error("Problem reading cgroup info: %r\n" % cmd)
             return -1
 
+
 class DockerP4Switch(Switch):
     """Node that represents a docker container.
     This part is inspired by:
@@ -718,7 +720,6 @@ class DockerP4Switch(Switch):
         self.devices = defaults['devices']
         self.cap_add = defaults['cap_add']
         self.sysctls = defaults['sysctls']
-        #self.storage_opt = defaults['storage_opt']
 
         # setup docker client
         # self.dcli = docker.APIClient(base_url='unix://var/run/docker.sock')
@@ -795,7 +796,6 @@ class DockerP4Switch(Switch):
 
         # let's initially set our resource limits
         self.update_resources(**self.resources)
-        #P4Switch.__init__(self, name, **kwargs)
 
     def cleanupTmpFiles(self):
         self.cmd("rm -rf /tmp/bmv2-%s-*" % self.name)
@@ -1347,6 +1347,17 @@ class DockerP4Switch(Switch):
         except:
             error("Problem reading cgroup info: %r\n" % cmd)
             return -1
+
+
+class DockerP4AP(DockerP4Switch, AP):
+    mininet_exception = multiprocessing.Value('i', 0)
+
+    def __init__(self, name, **kwargs):
+        DockerP4Switch.__init__(self, name, **kwargs)
+        self.inNamespace = True
+        self.wintfs = {}  # dict of wireless port numbers
+        self.wports = {}  # dict of interfaces to port numbers
+
 
 class DockerSta(Station):
     """Node that represents a docker container.
