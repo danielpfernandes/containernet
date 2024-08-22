@@ -176,7 +176,7 @@ class Docker ( Host ):
         debug("Created docker container object %s\n" % name)
         debug("image: %s\n" % str(self.dimage))
         debug("dcmd: %s\n" % str(self.dcmd))
-        info("%s: kwargs %s\n" % (name, str(kwargs)))
+        #info("%s: kwargs %s\n" % (name, str(kwargs)))
 
         # creats host config for container
         # see: https://docker-py.readthedocs.org/en/latest/hostconfig/
@@ -260,7 +260,7 @@ class Docker ( Host ):
         if cmd_field is not None:
             cmd_field.append("> /dev/pts/0 2>&1")  # make output available to docker logs
             cmd_field.append("&")  # put to background (works, but not nice)
-            info("{}: running CMD: {}\n".format(self.name, cmd_field))
+            #info("{}: running CMD: {}\n".format(self.name, cmd_field))
             self.cmd(" ".join(cmd_field))
 
     def get_cmd_field(self, imagename):
@@ -512,7 +512,7 @@ class Docker ( Host ):
         self.resources.update(kwargs)
         # filter out None values to avoid errors
         resources_filtered = {res:self.resources[res] for res in self.resources if self.resources[res] is not None}
-        info("{1}: update resources {0}\n".format(resources_filtered, self.name))
+        #info("{1}: update resources {0}\n".format(resources_filtered, self.name))
         self.dcli.update_container(self.dc, **resources_filtered)
 
     def updateCpuLimit(self, cpu_quota=-1, cpu_period=-1, cpu_shares=-1, cores=None):
@@ -732,7 +732,7 @@ class DockerP4Switch(Switch):
         debug("Created docker container object %s\n" % name)
         debug("image: %s\n" % str(self.dimage))
         debug("dcmd: %s\n" % str(self.dcmd))
-        info("%s: kwargs %s\n" % (name, str(kwargs)))
+        #info("%s: kwargs %s\n" % (name, str(kwargs)))
 
         # creats host config for container
         # see: https://docker-py.readthedocs.org/en/latest/hostconfig/
@@ -933,10 +933,9 @@ class DockerP4Switch(Switch):
         if cmd_field is not None:
             cmd_field.append("> /dev/pts/0 2>&1")  # make output available to docker logs
             cmd_field.append("&")  # put to background (works, but not nice)
-            info("{}: running CMD: {}\n".format(self.name, cmd_field))
+            #info("{}: running CMD: {}\n".format(self.name, cmd_field))
             self.cmd(" ".join(cmd_field))
 
-        # aaaaaaaaaaaaaaaaaaaaaaaaaaaa
         if not self.stopped:
             warn("*** %s is already running!\n" % self.name)
             return
@@ -1260,7 +1259,7 @@ class DockerP4Switch(Switch):
         self.resources.update(kwargs)
         # filter out None values to avoid errors
         resources_filtered = {res:self.resources[res] for res in self.resources if self.resources[res] is not None}
-        info("{1}: update resources {0}\n".format(resources_filtered, self.name))
+        #info("{1}: update resources {0}\n".format(resources_filtered, self.name))
         self.dcli.update_container(self.dc, **resources_filtered)
 
     def updateCpuLimit(self, cpu_quota=-1, cpu_period=-1, cpu_shares=-1, cores=None):
@@ -1448,7 +1447,7 @@ class DockerSta(Station):
         debug("Created docker container object %s\n" % name)
         debug("image: %s\n" % str(self.dimage))
         debug("dcmd: %s\n" % str(self.dcmd))
-        info("%s: kwargs %s\n" % (name, str(kwargs)))
+        #info("%s: kwargs %s\n" % (name, str(kwargs)))
 
         # creats host config for container
         # see: https://docker-py.readthedocs.org/en/latest/hostconfig/
@@ -1532,7 +1531,7 @@ class DockerSta(Station):
         if cmd_field is not None:
             cmd_field.append("> /dev/pts/0 2>&1")  # make output available to docker logs
             cmd_field.append("&")  # put to background (works, but not nice)
-            info("{}: running CMD: {}\n".format(self.name, cmd_field))
+            #info("{}: running CMD: {}\n".format(self.name, cmd_field))
             self.cmd(" ".join(cmd_field))
 
     def get_cmd_field(self, imagename):
