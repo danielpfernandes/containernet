@@ -30,8 +30,8 @@ def topology():
                        netcfg=True, thriftport=50001,
                        IPBASE="172.17.0.0/16", **args)
 
-    net.addLink(h1, s1)
-    net.addLink(h2, s1)
+    net.addLink(h1, s1, txo=False, rxo=False)
+    net.addLink(h2, s1, txo=False, rxo=False)
 
     info('*** Starting network\n')
     net.build()

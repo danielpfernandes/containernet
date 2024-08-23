@@ -115,7 +115,7 @@ from mn_wifi.node import AP
 from mn_wifi.wmediumdConnector import interference
 from mn_wifi.link import wmediumd, _4address, WirelessLink, ITSLink,\
     WifiDirectLink, adhoc, mesh, physicalMesh, PhysicalWifiDirectLink
-from mn_wifi.sixLoWPAN.link import TC6LoWPANLink
+from mn_wifi.sixLoWPAN.link import TC6LoWPANLink, LoWPAN
 
 
 # Mininet version: should be consistent with README and LICENSE
@@ -321,6 +321,8 @@ class Containernet( Mininet_wifi ):
             link = cls(node=node1, port=port1, **params)
             self.links.append(link)
             return link
+        elif cls == LoWPAN:
+            cls(node1=node1, node2=node2, **params)
         elif cls == _4address:
             if node1 not in self.aps:
                 self.aps.append(node1)
@@ -503,7 +505,7 @@ class Containernet( Mininet_wifi ):
             info( '.' )
             link.stop()
         info( '\n' )
-        nodesL2 = self.switches + self.aps
+        nodesL2 = self.switches + self.aps + self.apsensors
         info( '*** Stopping %i switches\n' % len( nodesL2 ) )
         stopped = {}
         for swclass, switches in groupby(

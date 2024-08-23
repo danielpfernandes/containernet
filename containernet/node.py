@@ -63,6 +63,7 @@ from mininet.log import info, error, warn, debug
 from mn_wifi.node import AP, Station
 from mn_wifi.bmv2 import P4Switch, pickUnusedPort, writeToFile, SIMPLE_SWITCH_GRPC, VALGRIND_PREFIX, \
     BMV2_LOG_LINES, STRATUM_BMV2, PKT_BYTES_TO_DUMP
+from mn_wifi.sixLoWPAN.node import OVSSensor
 from containernet.link import Intf, TCIntf, OVSIntf
 from distutils.version import StrictVersion
 
@@ -1350,6 +1351,15 @@ class DockerP4Switch(Switch):
 
 
 class DockerP4AP(DockerP4Switch, AP):
+    mininet_exception = multiprocessing.Value('i', 0)
+
+    def __init__(self, name, **kwargs):
+        DockerP4Switch.__init__(self, name, **kwargs)
+        self.inNamespace = True
+        self.wintfs = {}  # dict of wireless port numbers
+        self.wports = {}  # dict of interfaces to port numbers
+
+class DockerP4Sensor(DockerP4Switch, OVSSensor):
     mininet_exception = multiprocessing.Value('i', 0)
 
     def __init__(self, name, **kwargs):
