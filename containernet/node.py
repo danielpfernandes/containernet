@@ -937,6 +937,12 @@ class DockerP4Switch(Switch):
             #info("{}: running CMD: {}\n".format(self.name, cmd_field))
             self.cmd(" ".join(cmd_field))
 
+        if 'ip6' in self.params:
+            self.cmd("sysctl -w net.ipv6.conf.all.disable_ipv6=0")
+            self.cmd("sysctl -w net.ipv6.conf.default.disable_ipv6=0")
+            self.cmd("sysctl -w net.ipv6.conf.lo.disable_ipv6=0")
+            self.setIP6(self.params['ip6'])
+
         if not self.stopped:
             warn("*** %s is already running!\n" % self.name)
             return
@@ -1349,7 +1355,6 @@ class DockerP4Switch(Switch):
             error("Problem reading cgroup info: %r\n" % cmd)
             return -1
 
-
 class DockerP4AP(DockerP4Switch, AP):
     mininet_exception = multiprocessing.Value('i', 0)
 
@@ -1365,6 +1370,7 @@ class DockerP4Sensor(DockerP4Switch, OVSSensor):
     def __init__(self, name, **kwargs):
         DockerP4Switch.__init__(self, name, **kwargs)
         self.inNamespace = True
+        self.controlIntf = None
         self.wintfs = {}  # dict of wireless port numbers
         self.wports = {}  # dict of interfaces to port numbers
 

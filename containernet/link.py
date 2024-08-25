@@ -18,6 +18,7 @@ Link: basic link class for creating veth pairs
 """
 
 from mininet.log import info, error, debug
+
 from containernet.util import makeIntfPair
 import re
 
@@ -131,6 +132,20 @@ class Intf( object ):
         "Return MAC address"
         return self.mac
 
+    def setIP6(self, ipstr, prefixLen6=None, **args):
+        """Set our IP6 address"""
+        # This is a sign that we should perhaps rethink our prefix
+        # mechanism and/or the way we specify IP addresses
+        if '/' in ipstr:
+            self.ip6, self.prefixLen6 = ipstr.split('/')
+            return self.ipAddr(ipstr)
+
+        if prefixLen6 is None:
+            raise Exception('No prefix length set for IP address {}'.format
+                            (ipstr, ))
+        self.ip6, self.prefixLen6 = ipstr, prefixLen6
+        return self.ipAddr('{}/{}'.format(ipstr, prefixLen6))
+
     def isUp( self, setUp=False ):
         "Return whether interface is up"
         if setUp:
@@ -181,7 +196,7 @@ class Intf( object ):
         results[ name ] = result
         return result
 
-    def config( self, mac=None, ip=None, ifconfig=None,
+    def config( self, mac=None, ip=None, ip6=None, ifconfig=None,
                 up=True, **_params ):
         """Configure Node according to (optional) parameters:
            mac: MAC address
@@ -195,6 +210,7 @@ class Intf( object ):
         r = {}
         self.setParam( r, 'setMAC', mac=mac )
         self.setParam( r, 'setIP', ip=ip )
+        self.setParam(r, 'setIP6', ip=ip6)
         self.setParam( r, 'isUp', up=up )
         self.setParam( r, 'ifconfig', ifconfig=ifconfig )
         return r
@@ -352,10 +368,10 @@ class TCIntf( Intf ):
             return 'on' if isOn else 'off'
 
         # Set offload parameters with ethool
-        self.cmd( 'ethtool -K', self,
-                  'gro', on( gro ),
-                  'tx', on( txo ),
-                  'rx', on( rxo ) )
+        self.cmd('ethtool -K', self,
+                 'gro', on(gro),
+                 'tx', on(txo),
+                 'rx', on(rxo))
 
         # Optimization: return if nothing else to configure
         # Question: what happens if we want to reset things?
