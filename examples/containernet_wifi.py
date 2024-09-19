@@ -1,6 +1,6 @@
 #!/usr/bin/python
 """
-This is the most simple example to showcase Containernet.
+This is the simplest example to showcase Containernet.
 """
 from containernet.net import Containernet
 from containernet.node import DockerSta

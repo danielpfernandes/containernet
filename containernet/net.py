@@ -233,8 +233,9 @@ class Containernet( Mininet_wifi ):
         # find first switch and create link
         if connect:
             if not isinstance( connect, Node ):
-                # Use first switch if not specified
-                connect = self.switches[ 0 ]
+                nodes = self.switches
+                for node in nodes:
+                    connect = node
             # Connect the nat to the switch
             self.addLink( nat, connect )
             # Set the default route on hosts
@@ -524,7 +525,7 @@ class Containernet( Mininet_wifi ):
                 switch.stop()
             switch.terminate()
         info( '\n' )
-        nodes = self.hosts + self.stations
+        nodes = self.hosts + self.stations + self.sensors
         info( '*** Stopping %i hosts/stations\n' % len( nodes ) )
         for node in nodes:
             info( node.name + ' ' )
