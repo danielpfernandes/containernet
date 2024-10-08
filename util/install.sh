@@ -203,7 +203,7 @@ function mn_wifi_deps {
     fi
     sudo git clone --depth=1 https://github.com/intrig-unicamp/mininet-wifi.git
     pushd $MININET_DIR/containernet/mininet-wifi
-    sudo util/install.sh -Wlnfv
+    sudo util/install.sh -Wlnfv6
     sudo PYTHON=${PYTHON} make install
     popd
 
