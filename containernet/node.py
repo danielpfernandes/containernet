@@ -941,6 +941,7 @@ class DockerP4Switch(Switch):
             self.cmd("sysctl -w net.ipv6.conf.all.disable_ipv6=0")
             self.cmd("sysctl -w net.ipv6.conf.default.disable_ipv6=0")
             self.cmd("sysctl -w net.ipv6.conf.lo.disable_ipv6=0")
+            self.cmd("sysctl -w net.ipv6.conf.eth0.disable_ipv6=1")
             self.setIP6(self.params['ip6'])
 
         if not self.stopped:
@@ -1654,6 +1655,7 @@ class DockerSensor(LowPANNode):
             self.cmd("sysctl -w net.ipv6.conf.all.disable_ipv6=0")
             self.cmd("sysctl -w net.ipv6.conf.default.disable_ipv6=0")
             self.cmd("sysctl -w net.ipv6.conf.lo.disable_ipv6=0")
+            self.cmd("sysctl -w net.ipv6.conf.eth0.disable_ipv6=1")
 
     def _get_volume_mount_name(self, volume_str):
         """ Helper to extract mount names from volume specification strings """
