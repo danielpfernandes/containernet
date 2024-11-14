@@ -21,11 +21,6 @@ class Energy(object):
         Energy.thread_.start()
 
     def start(self, nodes):
-
-        for node in nodes:
-            for intf in node.wintfs.values():
-                intf.rx, intf.tx = 0, 0
-
         try:
             while self.thread_._keep_alive:
                sleep(1)  # set sleep time to 1 second
@@ -44,6 +39,6 @@ class Energy(object):
         Returns: float: Energy consumed in watt-hours (Wh).
         """
 
-        cpu_utilization = psutil.cpu_percent(interval=1) / 100  # Fração de utilização (0 a 1)
-        power = intf.voltage * intf.current * cpu_utilization  # Potência em watts
-        return power / 3600  # Converte para watt-hora (Wh) considerando um intervalo de 1 segundo
+        cpu_utilization = psutil.cpu_percent(interval=1) / 100  # Usage fraction (0 to 1)
+        power = intf.voltage * intf.current * cpu_utilization  # Power in watts
+        return power / 3600  # Converts to watt-hours (Wh) considering a 1-second interval
