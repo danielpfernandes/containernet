@@ -25,12 +25,11 @@ class Energy(object):
             while self.thread_._keep_alive:
                sleep(1)  # set sleep time to 1 second
                for node in nodes:
-                   for intf in node.wintfs.values():
-                       intf.consumption += self.get_energy(intf)
+                   node.consumption += self.get_energy(node)
         except:
             error("Error with the energy consumption function\n")
 
-    def get_energy(self, intf):
+    def get_energy(self, node):
         """
         Calculates power consumption based on voltage, current, and duration.
 
@@ -39,6 +38,6 @@ class Energy(object):
         Returns: float: Energy consumed in watt-hours (Wh).
         """
 
-        cpu_utilization = psutil.cpu_percent(interval=1) / 100  # Usage fraction (0 to 1)
-        power = intf.voltage * intf.current * cpu_utilization  # Power in watts
+        cpu_utilization = psutil.cpu_percent() / 100  # Usage fraction (0 to 1)
+        power = node.voltage * node.current * cpu_utilization  # Power in watts
         return power / 3600  # Converts to watt-hours (Wh) considering a 1-second interval

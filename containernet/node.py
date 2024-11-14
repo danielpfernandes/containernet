@@ -1433,7 +1433,10 @@ class DockerSensor(LowPANNode):
                      'devices': [],
                      'cap_add': ['net_admin'],  # we need this to allow mininet network setup
                      #'storage_opt': None,
-                     'sysctls': {}
+                     'sysctls': {},
+                     'voltage': 10,
+                     'current': 3,
+                     'consumption': 0
                      }
         defaults.update( kwargs )
 
@@ -1461,6 +1464,9 @@ class DockerSensor(LowPANNode):
         self.devices = defaults['devices']
         self.cap_add = defaults['cap_add']
         self.sysctls = defaults['sysctls']
+        self.voltage = defaults['voltage']
+        self.current = defaults['current']
+        self.consumption = defaults['consumption']
         #self.storage_opt = defaults['storage_opt']
 
         # setup docker client
