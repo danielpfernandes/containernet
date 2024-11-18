@@ -115,7 +115,7 @@ from mn_wifi.node import AP
 from mn_wifi.wmediumdConnector import interference
 from mn_wifi.link import wmediumd, _4address, WirelessLink, ITSLink,\
     WifiDirectLink, adhoc, mesh, physicalMesh, PhysicalWifiDirectLink
-from mn_wifi.sixLoWPAN.link import TC6LoWPANLink
+from mn_wifi.sixLoWPAN.link import TC6LoWPANLink, LoWPAN
 
 
 # Mininet version: should be consistent with README and LICENSE
@@ -204,7 +204,9 @@ class Containernet( Mininet_wifi ):
                        (self.aps if node in self.aps else
                         ( self.switches if node in self.switches else
                          ( self.controllers if node in self.controllers else
-                              [] ) ) ) ) )
+                           (self.sensors if node in self.sensors else
+                            (self.apsensors if node in self.apsensors else
+                              [] ) ) ) ) ) ) )
         node.stop( deleteIntfs=True )
         node.terminate()
         nodes.remove( node )
@@ -231,8 +233,9 @@ class Containernet( Mininet_wifi ):
         # find first switch and create link
         if connect:
             if not isinstance( connect, Node ):
-                # Use first switch if not specified
-                connect = self.switches[ 0 ]
+                nodes = self.switches
+                for node in nodes:
+                    connect = node
             # Connect the nat to the switch
             self.addLink( nat, connect )
             # Set the default route on hosts
@@ -265,13 +268,14 @@ class Containernet( Mininet_wifi ):
 
     def __iter__( self ):
         "return iterator over node names"
-        for node in chain( self.hosts, self.stations, self.aps, self.switches, self.controllers ):
+        for node in chain( self.hosts, self.stations, self.aps, self.switches, self.controllers,
+                           self.sensors, self.apsensors):
             yield node.name
 
     def __len__( self ):
         "returns number of nodes in net"
         return ( len( self.hosts ) + len( self.stations ) + len( self.switches ) +
-                 len( self.aps ) + len( self.controllers ) )
+                 len( self.aps ) + len( self.controllers ) + len( self.sensors ) + len( self.apsensors ))
 
     def __contains__( self, item ):
         "returns True if net contains named node"
@@ -321,6 +325,8 @@ class Containernet( Mininet_wifi ):
             link = cls(node=node1, port=port1, **params)
             self.links.append(link)
             return link
+        elif cls == LoWPAN:
+            cls(node1=node1, node2=node2, **params)
         elif cls == _4address:
             if node1 not in self.aps:
                 self.aps.append(node1)
@@ -503,7 +509,7 @@ class Containernet( Mininet_wifi ):
             info( '.' )
             link.stop()
         info( '\n' )
-        nodesL2 = self.switches + self.aps
+        nodesL2 = self.switches + self.aps + self.apsensors
         info( '*** Stopping %i switches\n' % len( nodesL2 ) )
         stopped = {}
         for swclass, switches in groupby(
@@ -519,7 +525,7 @@ class Containernet( Mininet_wifi ):
                 switch.stop()
             switch.terminate()
         info( '\n' )
-        nodes = self.hosts + self.stations
+        nodes = self.hosts + self.stations + self.sensors
         info( '*** Stopping %i hosts/stations\n' % len( nodes ) )
         for node in nodes:
             info( node.name + ' ' )
