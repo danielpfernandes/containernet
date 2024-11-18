@@ -26,6 +26,8 @@ class Energy(object):
                sleep(1)  # set sleep time to 1 second
                for node in nodes:
                    node.consumption += self.get_energy(node)
+                   node.cmd('echo {} > /tmp/consumption'.format(node.consumption))
+                   node.cmd('echo {} >> /tmp/consumption.log'.format(node.consumption))
         except:
             error("Error with the energy consumption function\n")
 
