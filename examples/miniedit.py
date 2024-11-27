@@ -2383,7 +2383,7 @@ class MiniEdit( Frame ):
 
     def clickNode( self, event ):
         "Node click handler."
-        if self.active is 'NetLink':
+        if self.active == 'NetLink':
             self.startLink( event )
         else:
             self.selectNode( event )
@@ -2391,14 +2391,14 @@ class MiniEdit( Frame ):
 
     def dragNode( self, event ):
         "Node drag handler."
-        if self.active is 'NetLink':
+        if self.active == 'NetLink':
             self.dragNetLink( event )
         else:
             self.dragNodeAround( event )
 
     def releaseNode( self, event ):
         "Node release handler."
-        if self.active is 'NetLink':
+        if self.active == 'NetLink':
             self.finishLink( event )
 
     # Specific node handlers
