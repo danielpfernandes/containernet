@@ -2,10 +2,9 @@
    @author: Ramon Fontes (ramon.fontes@ufrn.br)
 """
 import re
-import psutil
 
 from threading import Thread as thread
-from time import sleep, time
+from time import sleep
 
 from mininet.log import error
 
@@ -31,6 +30,24 @@ class Energy(object):
         except:
             error("Error with the energy consumption function\n")
 
+    def get_cpu_usage_v2(self, node):
+        cpu_usage = node.cmd("grep '^usage_usec' /sys/fs/cgroup/cpu.stat | awk '{print $2}' | tr -cd '0-9'")
+        cpu_usage_cleaned = re.sub(r'[^\d]', '', cpu_usage)[4:-4]
+        try:
+            return int(cpu_usage_cleaned)
+        except:
+            return 0
+
+    def calculate_cpu_percent_v2(self, node):
+        usage_start = self.get_cpu_usage_v2(node)
+        sleep(0.001)
+        usage_end = self.get_cpu_usage_v2(node)
+
+        cpu_delta = usage_end - usage_start
+
+        cpu_percent = (cpu_delta / 1e6) * 100 / 0.001
+        return cpu_percent
+
     def get_energy(self, node):
         """
         Calculates power consumption based on voltage, current, and duration.
@@ -40,6 +57,6 @@ class Energy(object):
         Returns: float: Energy consumed in watt-hours (Wh).
         """
 
-        cpu_utilization = psutil.cpu_percent() / 100  # Usage fraction (0 to 1)
+        cpu_utilization = self.calculate_cpu_percent_v2(node) / 100
         power = node.voltage * node.current * cpu_utilization  # Power in watts
         return power / 3600  # Converts to watt-hours (Wh) considering a 1-second interval
