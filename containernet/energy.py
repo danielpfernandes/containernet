@@ -4,6 +4,7 @@
 import re
 
 from threading import Thread as thread
+from datetime import datetime
 from time import sleep
 
 from mininet.log import error
@@ -22,11 +23,9 @@ class Energy(object):
     def start(self, nodes):
         try:
             while self.thread_._keep_alive:
-               sleep(1)  # set sleep time to 1 second
+               sleep(0.1)  # set sleep time to 1 second
                for node in nodes:
                    node.consumption += self.get_energy(node)
-                   node.cmd('echo {} > /tmp/consumption'.format(node.consumption))
-                   node.cmd('echo {} >> /tmp/consumption.log'.format(node.consumption))
         except:
             error("Error with the energy consumption function\n")
 
@@ -40,12 +39,12 @@ class Energy(object):
 
     def calculate_cpu_percent_v2(self, node):
         usage_start = self.get_cpu_usage_v2(node)
-        sleep(0.001)
+        sleep(0.1)
         usage_end = self.get_cpu_usage_v2(node)
 
         cpu_delta = usage_end - usage_start
 
-        cpu_percent = (cpu_delta / 1e6) * 100 / 0.001
+        cpu_percent = (cpu_delta / 1e6) * 100 / 0.1
         return cpu_percent
 
     def get_energy(self, node):
@@ -56,7 +55,12 @@ class Energy(object):
         current (float): Current consumed by the processor in amperes (A).
         Returns: float: Energy consumed in watt-hours (Wh).
         """
-
-        cpu_utilization = self.calculate_cpu_percent_v2(node) / 100
+        current_datetime = datetime.now()
+        cpu_percent = self.calculate_cpu_percent_v2(node)
+        formatted_datetime = current_datetime.strftime("%Y-%m-%d %H:%M:%S")
+        node.cmd('echo {} > /tmp/consumption'.format(node.consumption))
+        cpu_utilization = cpu_percent / 100
         power = node.voltage * node.current * cpu_utilization  # Power in watts
-        return power / 3600  # Converts to watt-hours (Wh) considering a 1-second interval
+        power_converted = power / 3600  # Converts to watt-hours (Wh) considering a 1-second interval
+        node.cmd('echo {},{},{} >> /tmp/consumption.log'.format(formatted_datetime, cpu_percent, power_converted))
+        return power_converted
