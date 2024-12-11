@@ -234,7 +234,7 @@ class Containernet( Mininet_wifi ):
         # find first switch and create link
         if connect:
             if not isinstance( connect, Node ):
-                nodes = self.switches
+                nodes = self.switches + self.aps
                 for node in nodes:
                     connect = node
             # Connect the nat to the switch
