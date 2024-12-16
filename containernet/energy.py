@@ -61,6 +61,6 @@ class Energy(object):
         node.cmd('echo {} > /tmp/consumption'.format(node.consumption))
         cpu_utilization = cpu_percent / 100
         power = node.voltage * node.current * cpu_utilization  # Power in watts
-        power_converted = power / 3600  # Converts to watt-hours (Wh) considering a 1-second interval
+        power_converted = power * 0.1 / 3600  # Converts to watt-hours (Wh) considering a 1-second interval
         node.cmd('echo {},{},{} >> /tmp/consumption.log'.format(formatted_datetime, cpu_percent, power_converted))
         return power_converted
