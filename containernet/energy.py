@@ -23,17 +23,16 @@ class Energy(object):
     def start(self, nodes):
         try:
             while self.thread_._keep_alive:
-               sleep(0.1)  # set sleep time to 1 second
-               for node in nodes:
-                   node.consumption += self.get_energy(node)
+                sleep(0.1)  # set sleep time to 1 second
+                for node in nodes:
+                    node.consumption += self.get_energy(node)
         except:
             error("Error with the energy consumption function\n")
 
     def get_cpu_usage_v2(self, node):
-        cpu_usage = node.cmd("grep '^usage_usec' /sys/fs/cgroup/cpu.stat | awk '{print $2}' | tr -cd '0-9'")
-        cpu_usage_cleaned = re.sub(r'[^\d]', '', cpu_usage)[4:-4]
+        cpu_usage = node.pexec("grep '^usage_usec' /sys/fs/cgroup/cpu.stat | awk '{print $2}' | tr -cd '0-9'", shell=True)[0]
         try:
-            return int(cpu_usage_cleaned)
+            return int(cpu_usage)
         except:
             return 0
 
@@ -41,7 +40,6 @@ class Energy(object):
         usage_start = self.get_cpu_usage_v2(node)
         sleep(0.1)
         usage_end = self.get_cpu_usage_v2(node)
-
         cpu_delta = usage_end - usage_start
 
         cpu_percent = (cpu_delta / 1e6) * 100 / 0.1
@@ -58,9 +56,9 @@ class Energy(object):
         current_datetime = datetime.now()
         cpu_percent = self.calculate_cpu_percent_v2(node)
         formatted_datetime = current_datetime.strftime("%Y-%m-%d %H:%M:%S")
-        node.cmd('echo {} > /tmp/consumption'.format(node.consumption))
+        node.pexec('echo {} > /tmp/consumption'.format(node.consumption), shell=True)
         cpu_utilization = cpu_percent / 100
         power = node.voltage * node.current * cpu_utilization  # Power in watts
         power_converted = power * 0.1 / 3600  # Converts to watt-hours (Wh) considering a 1-second interval
-        node.cmd('echo {},{},{} >> /tmp/consumption.log'.format(formatted_datetime, cpu_percent, power_converted))
+        node.pexec('echo {},{},{} >> /tmp/consumption.log'.format(formatted_datetime, cpu_percent, power_converted), shell=True)
         return power_converted
