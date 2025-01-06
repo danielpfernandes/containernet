@@ -116,6 +116,7 @@ from mn_wifi.node import AP
 from mn_wifi.wmediumdConnector import interference
 from mn_wifi.link import wmediumd, _4address, WirelessLink, ITSLink,\
     WifiDirectLink, adhoc, mesh, physicalMesh, PhysicalWifiDirectLink
+from mn_wifi.energy import BitZigBeeEnergy
 from mn_wifi.sixLoWPAN.link import TC6LoWPANLink, LoWPAN
 
 
@@ -493,6 +494,8 @@ class Containernet( Mininet_wifi ):
     def stop( self ):
         if Energy.thread_:
             Energy.thread_._keep_alive = False
+        if BitZigBeeEnergy.thread_:
+            BitZigBeeEnergy.thread_._keep_alive = False
         self.stop_graph_params()
         info('*** Removing NAT rules of %i SAPs\n' % len(self.SAPswitches))
         for SAPswitch in self.SAPswitches:
