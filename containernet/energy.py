@@ -25,7 +25,8 @@ class Energy(object):
             while self.thread_._keep_alive:
                 sleep(0.1)  # set sleep time to 1 second
                 for node in nodes:
-                    node.consumption += self.get_energy(node)
+                    if(self.thread_._keep_alive):
+                        node.consumption += self.get_energy(node)
         except:
             error("Error with the energy consumption function\n")
 
@@ -60,5 +61,4 @@ class Energy(object):
         cpu_utilization = cpu_percent / 100
         power = node.voltage * node.current * cpu_utilization  # Power in watts
         power_converted = power * 0.1 / 3600  # Converts to watt-hours (Wh) considering a 1-second interval
-        node.pexec('echo {},{},{} >> /tmp/consumption.log'.format(formatted_datetime, cpu_percent, power_converted), shell=True)
         return power_converted
