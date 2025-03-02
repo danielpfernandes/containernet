@@ -129,6 +129,7 @@ class Docker ( Host ):
                      'port_bindings': {},
                      'ports': [],
                      'dns': [],
+                     'user': "0:0",
                      'ipc_mode': None,
                      'devices': [],
                      'cap_add': ['net_admin'],  # we need this to allow mininet network setup
@@ -160,6 +161,7 @@ class Docker ( Host ):
         self.publish_all_ports = defaults['publish_all_ports']
         self.port_bindings = defaults['port_bindings']
         self.dns = defaults['dns']
+        self.user = defaults['user']
         self.ipc_mode = defaults['ipc_mode']
         self.devices = defaults['devices']
         self.cap_add = defaults['cap_add']
@@ -222,6 +224,7 @@ class Docker ( Host ):
                 environment=self.environment,
                 #network_disabled=True,  # docker stats breaks if we disable the default network
                 host_config=hc,
+                user=self.user,
                 ports=defaults['ports'],
                 labels=['com.containernet'],
                 volumes=[self._get_volume_mount_name(v) for v in self.volumes if self._get_volume_mount_name(v) is not None],
@@ -616,7 +619,7 @@ class DockerP4Switch(Switch):
                  thriftport=None, stratum=False, notifications=False, elogger=False,
                  debugger=False, loglevel="info", pktdump=False, json=None, cpuport=255,
                  valgrind=False, dryrun=False, timeout=SWITCH_START_TIMEOUT,
-                 switch_config=None, IPBASE="172.16.0.0/16", **kwargs):
+                 switch_config=None, **kwargs):
         """
         Creates a Docker container as Mininet host.
 
@@ -638,7 +641,6 @@ class DockerP4Switch(Switch):
         * updateMemoryLimits(...)
         """
         self.dimage = dimage
-        self.ipBase = IPBASE
         self.dnameprefix = "mn"
         self.dcmd = dcmd if dcmd is not None else "/bin/bash"
         self.dc = None  # pointer to the dict containing 'Id' and 'Warnings' keys of the container
@@ -910,9 +912,8 @@ class DockerP4Switch(Switch):
         args.append('--grpc-server-addr 0.0.0.0:%s' % self.grpcPort)
         return args
 
-    def getIP(self, nextIP=1):
-        ipBaseNum, prefixLen = netParse(self.ipBase)
-        return ipAdd(nextIP, ipBaseNum=ipBaseNum, prefixLen=prefixLen)
+    def getIP(self):
+        return self.dcli.containers(filters={"id": self.did, "status": "running"})[0]['NetworkSettings']['Networks']['bridge']['IPAddress']
 
     def start(self, controllers=None):
         # Containernet ignores the CMD field of the Dockerfile.
@@ -953,7 +954,7 @@ class DockerP4Switch(Switch):
             #  start.
             self.controllers = controllers
 
-        self.sip = self.getIP(self.p4DeviceId + 1)
+        self.sip = self.getIP()
 
         # Remove files from previous executions (if we are restarting)
         self.cleanupTmpFiles()
