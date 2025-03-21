@@ -14,9 +14,9 @@ def topology():
 
     info('*** Adding docker containers\n')
     sta1 = net.addStation('sta1', ip='10.0.0.1', mac='00:02:00:00:00:01',
-                          cls=DockerSta, dimage="ubuntu:trusty", cpu_shares=20)
+                          cls=DockerSta, dimage="ubuntu:noble", cpu_shares=20)
     sta2 = net.addStation('sta2', ip='10.0.0.2', mac='00:02:00:00:00:02',
-                          cls=DockerSta, dimage="ubuntu:trusty", cpu_shares=20)
+                          cls=DockerSta, dimage="ubuntu:noble", cpu_shares=20)
     ap1 = net.addAccessPoint('ap1')
     c0 = net.addController('c0')
 
