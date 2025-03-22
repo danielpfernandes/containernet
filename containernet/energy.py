@@ -61,4 +61,5 @@ class Energy(object):
         cpu_utilization = cpu_percent / 100
         power = node.voltage * node.current * cpu_utilization  # Power in watts
         power_converted = power * 0.1 / 3600  # Converts to watt-hours (Wh) considering a 1-second interval
+        node.pexec('echo {},{},{} >> /tmp/consumption-cpu'.format(formatted_datetime, cpu_utilization, power_converted), shell=True)
         return power_converted
