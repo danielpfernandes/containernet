@@ -216,7 +216,7 @@ function mn_wifi_deps {
          sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
     $update update
     $install docker-ce
-    sudo PYTHON=${PYTHON} pip install docker
+    sudo PYTHON=${PYTHON} pip install docker --break-system-packages
 
     pushd $MININET_DIR/containernet
     sudo PYTHON=${PYTHON} make install
