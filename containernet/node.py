@@ -1437,7 +1437,8 @@ class DockerSensor(LowPANNode):
                      'sysctls': {},
                      'voltage': 10,
                      'current': 3,
-                     'consumption': 0
+                     'consumption': 0,
+                     'battery_capacity': 1
                      }
         defaults.update( kwargs )
 
@@ -1468,6 +1469,7 @@ class DockerSensor(LowPANNode):
         self.voltage = defaults['voltage']
         self.current = defaults['current']
         self.consumption = defaults['consumption']
+        self.battery_capacity = defaults['battery_capacity']
         #self.storage_opt = defaults['storage_opt']
 
         # setup docker client
