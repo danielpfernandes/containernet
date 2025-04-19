@@ -195,7 +195,11 @@ function mn_wifi_deps {
          sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
     $update update
     $install docker-ce
-    sudo PYTHON=${PYTHON} pip install docker python-iptables --break-system-packages
+    if [ "$DIST" = "Ubuntu" ] &&  [ `expr $RELEASE '>=' 24.04` = "1" ]; then
+ 	 sudo PYTHON=${PYTHON} pip install docker python-iptables --break-system-packages
+    else
+ 	 sudo PYTHON=${PYTHON} pip install docker python-iptables
+    fi
 
     pushd $MININET_DIR/containernet
     sudo PYTHON=${PYTHON} make install
