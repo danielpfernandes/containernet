@@ -171,27 +171,6 @@ function kernel_clean {
     rm -f $HOME/linux-headers-* $HOME/linux-image-*
 }
 
-# Install Mininet deps
-function mn_deps {
-    echo "Installing Mininet dependencies"
-
-    echo "Installing Mininet core"
-    pushd $MININET_DIR/containernet
-    if [ -d mininet ]; then
-      echo "Removing Mininet dir..."
-      rm -r mininet
-    fi
-    sudo git clone --depth=1 https://github.com/mininet/mininet.git
-    pushd $MININET_DIR/containernet/mininet
-    sudo util/install.sh -nfv
-    sudo PYTHON=${PYTHON} make install
-    popd
-
-    pushd $MININET_DIR/containernet
-    sudo PYTHON=${PYTHON} make install
-    popd
-}
-
 # Install Mininet-WiFi deps
 function mn_wifi_deps {
     echo "Installing Mininet/Mininet-WiFi dependencies"
@@ -216,7 +195,11 @@ function mn_wifi_deps {
          sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
     $update update
     $install docker-ce
-    sudo PYTHON=${PYTHON} pip install docker
+    if [ "$DIST" = "Ubuntu" ] &&  [ `expr $RELEASE '>=' 24.04` = "1" ]; then
+ 	 sudo PYTHON=${PYTHON} pip install docker python-iptables --break-system-packages
+    else
+ 	 sudo PYTHON=${PYTHON} pip install docker python-iptables
+    fi
 
     pushd $MININET_DIR/containernet
     sudo PYTHON=${PYTHON} make install
@@ -474,7 +457,6 @@ function all {
     echo "Installing all packages except for -eix (doxypy, ivs, nox-classic)..."
     pre_build
     kernel
-    mn_deps
     mn_wifi_deps
     # Skip mn_dev (doxypy/texlive/fonts/etc.) because it's huge
     # mn_dev
@@ -581,7 +563,6 @@ else
       h)    usage;;
       k)    kernel;;
       m)    modprobe;;
-      n)    mn_deps;;
       r)    remove_ovs;;
       s)    mkdir -p $OPTARG; # ensure the directory is created
             BUILD_DIR="$( cd -P "$OPTARG" && pwd )"; # get the full path

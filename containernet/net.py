@@ -109,12 +109,14 @@ from mininet.util import ( quietRun, fixLimits, ensureRoot,
 from containernet.cli import CLI
 from containernet.node import Docker, OVSSwitch
 from containernet.link import TCLink
+from containernet.energy import Energy
 
 from mn_wifi.net import Mininet_wifi
 from mn_wifi.node import AP
 from mn_wifi.wmediumdConnector import interference
 from mn_wifi.link import wmediumd, _4address, WirelessLink, ITSLink,\
     WifiDirectLink, adhoc, mesh, physicalMesh, PhysicalWifiDirectLink
+from mn_wifi.energy import BitZigBeeEnergy
 from mn_wifi.sixLoWPAN.link import TC6LoWPANLink, LoWPAN
 
 
@@ -233,7 +235,7 @@ class Containernet( Mininet_wifi ):
         # find first switch and create link
         if connect:
             if not isinstance( connect, Node ):
-                nodes = self.switches
+                nodes = self.switches + self.aps
                 for node in nodes:
                     connect = node
             # Connect the nat to the switch
@@ -490,6 +492,10 @@ class Containernet( Mininet_wifi ):
                          'should be overriden in subclass', self )
 
     def stop( self ):
+        if Energy.thread_:
+            Energy.thread_._keep_alive = False
+        if BitZigBeeEnergy.thread_:
+            BitZigBeeEnergy.thread_._keep_alive = False
         self.stop_graph_params()
         info('*** Removing NAT rules of %i SAPs\n' % len(self.SAPswitches))
         for SAPswitch in self.SAPswitches:

@@ -46,9 +46,8 @@ setup(
         'setuptools',
         'urllib3',
         'docker',
-        'python-iptables',
+        #'python-iptables', // found issues with ubuntu 22.04
         'pytest',
-        # fixes: https://github.com/pytest-dev/pytest/issues/4770
         'more-itertools'
     ],
     scripts=scripts,

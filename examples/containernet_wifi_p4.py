@@ -23,12 +23,11 @@ def topology():
     args = {'json': json_file, 'switch_config': config}
 
     info('*** Adding P4 AP\n')
-    # IPBASE: subnet from eth0 interface,
     ap1 = net.addAccessPoint('ap1', cls=DockerP4AP, mac="00:00:00:00:00:03",
                              volumes=[path + "/p4_files:/root"],
                              dimage="ramonfontes/bmv2", cpu_shares=20,
                              client_isolation=True, netcfg=True,
-                             thriftport=50001,  IPBASE="172.17.0.0/16", **args)
+                             thriftport=50001, **args)
     net.configureWifiNodes()
 
     info('*** Creating links\n')
